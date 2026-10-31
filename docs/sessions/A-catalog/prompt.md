@@ -22,3 +22,5 @@ When the whole acceptance checklist is done: npm run typecheck && npm run lint, 
 
 ## Follow-up prompts
 (appended by Main as they are sent)
+
+- **Redesign follow-up (premium UI):** plans grid/list toggle, product chips+margin, discount rule text + usage bar, template quote preview. Browser-tested admin/staff, 1440 + 375. Fixed templates/[id] delete button (inline server fn passed to client).

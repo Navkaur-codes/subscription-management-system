@@ -41,3 +41,4 @@ Admin sets up everything the business sells: products (with variants), plans, ta
 
 ## Status
 - [x] 1 Taxes  - [x] 2 Products  - [x] 3 Plans  - [x] 4 Discounts  - [x] 5 Templates (typecheck + lint pass; not browser-tested)
+- [x] Redesign follow-up done (see prompt.md)

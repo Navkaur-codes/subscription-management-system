@@ -1,10 +1,11 @@
-import { Plus } from "lucide-react";
+import { Plus, Receipt } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 import { PAGE_SIZE, pageParams } from "@/lib/action";
 import { toNum } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/page-header";
+import { MetricStrip } from "@/components/shared/metric-strip";
 import { DataTable, type Column } from "@/components/shared/data-table";
 import { Pagination, SearchInput, Toolbar } from "@/components/shared/list-controls";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -22,9 +23,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
   const sp = await searchParams;
   const { page, skip, take } = pageParams(sp);
   const where = sp.q ? { name: { contains: sp.q, mode: "insensitive" as const } } : {};
-  const [taxes, total] = await Promise.all([
+  const [taxes, total, activeCount] = await Promise.all([
     db.tax.findMany({ where, skip, take, orderBy: { name: "asc" }, include: { _count: { select: { products: true } } } }),
     db.tax.count({ where }),
+    db.tax.count({ where: { ...where, isActive: true } }),
   ]);
   const rows: Row[] = taxes.map((t) => ({
     id: t.id,
@@ -58,8 +60,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
     });
 
   return (
-    <>
+    <div className="space-y-6">
       <PageHeader
+        eyebrow="Catalog"
+        icon={Receipt}
         title="Taxes"
         description="Tax rates that can be attached to products."
         actions={
@@ -73,6 +77,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
           )
         }
       />
+      <MetricStrip items={[{ label: "Tax rates", value: total }, { label: "Active", value: activeCount }]} />
       <Toolbar>
         <SearchInput placeholder="Search taxes…" />
       </Toolbar>
@@ -80,6 +85,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
         <DataTable columns={columns} rows={rows} />
       </Stagger>
       <Pagination page={page} pageSize={PAGE_SIZE} total={total} />
-    </>
+    </div>
   );
 }

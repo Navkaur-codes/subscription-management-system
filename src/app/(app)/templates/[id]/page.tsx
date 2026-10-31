@@ -1,13 +1,13 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { ActionButton } from "@/components/shared/action-button";
 import { PageHeader } from "@/components/shared/page-header";
 import { TemplateForm } from "@/components/catalog/template-form";
+import { TemplateDeleteButton } from "@/components/catalog/template-delete";
 import { loadTemplateOptions } from "@/components/catalog/template-data";
-import { deleteTemplate } from "../actions";
 
 export const metadata = { title: "Quotation template" };
 
@@ -29,18 +29,13 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         description={admin ? "Edit template" : "Read-only view"}
         actions={
           <>
-            <Button asChild>
-              <Link href={`/subscriptions/new?templateId=${t.id}`}>Use template</Link>
+            {admin && <TemplateDeleteButton id={t.id} />}
+            <Button asChild size="lg">
+              <Link href={`/subscriptions/new?templateId=${t.id}`}>
+                Use template
+                <ArrowRight className="size-4" />
+              </Link>
             </Button>
-            {admin && (
-              <ActionButton
-                action={() => deleteTemplate(t.id)}
-                redirectTo="/templates"
-                confirm={{ title: "Delete this template?", description: "Existing subscriptions are not affected.", confirmLabel: "Delete" }}
-              >
-                Delete
-              </ActionButton>
-            )}
           </>
         }
       />
