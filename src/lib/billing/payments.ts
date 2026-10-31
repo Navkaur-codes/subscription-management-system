@@ -1,3 +1,4 @@
+import { isSameDay } from "date-fns";
 import { db } from "@/lib/db";
 import { outstanding } from "@/lib/invoice-status";
 import { formatMoney, round2, toNum } from "@/lib/format";
@@ -23,7 +24,8 @@ export async function recordPayment(input: PaymentInput, recordedById: string) {
         invoiceId: inv.id,
         method: data.method,
         amount,
-        paymentDate: data.paymentDate,
+        // A date-only pick of today keeps the current time, so new payments sort to the top of the history.
+        paymentDate: isSameDay(data.paymentDate, new Date()) ? new Date() : data.paymentDate,
         note: data.note || null,
         reference: data.reference || null,
         recordedById,

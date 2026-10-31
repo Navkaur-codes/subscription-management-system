@@ -19,7 +19,8 @@
     "dev:c": "cross-env NEXT_DIST_DIR=.next-c next dev -p 3003",
     "dev:d": "cross-env NEXT_DIST_DIR=.next-d next dev -p 3004",
     "dev:e": "cross-env NEXT_DIST_DIR=.next-e next dev -p 3006",
-    "verify": "cross-env NODE_ENV=production tsx scripts/verify-ps.ts"
+    "verify": "cross-env NODE_ENV=production tsx scripts/verify-ps.ts",
+    "demo:prepare": "tsx scripts/prepare-demo.ts"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
