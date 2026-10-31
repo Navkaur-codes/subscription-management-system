@@ -4,6 +4,16 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
+ * The shadcn components use `data-checked:` / `data-active:` variants, but Radix marks state as
+ * data-state="checked" etc. Map them to Radix's attributes so switches, checkboxes, radios and
+ * tabs show their on/off state. (data-open/data-closed are deliberately left unmapped: dialogs
+ * and sheets open instantly without enter/exit animations.)
+ */
+@custom-variant data-checked (&[data-state="checked"]);
+@custom-variant data-unchecked (&[data-state="unchecked"]);
+@custom-variant data-active (&[data-state="active"]);
+
+/*
  * Brightloop design tokens — v3 "Ember Loop" (see docs/DESIGN.md).
  * Warm paper + ink, ONE ember accent, serif display type. Status colour only via <StatusBadge>,
  * chart colour only via --chart-1..6. Never use raw Tailwind palette colours in pages.

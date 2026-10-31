@@ -111,3 +111,5 @@ Phase 2 = integration in place (no merges): run full typecheck/build, fix seams,
 - Demo prep: nothing was billable (remaining "due" subs were expired) → `npm run demo:prepare` adds 40 subs going live today; preview then shows "40 subscriptions are due today … Create 40 invoices".
 - Script corrections: portal sign-out is the avatar menu; pause/resume uses the Customer demo (Business Yearly isn't pausable); billing button label "Create 40 invoices"; second run says "You're all caught up".
 - QA records created during the walkthrough were deleted; SEATS10 usage restored to 45.
+
+- Fixed: plan rule switches (and checkbox/radio/tabs checked state) were invisible — shadcn classes used `data-checked:` etc. but Radix sets `data-state="checked"`. Mapped data-checked/unchecked/active via @custom-variant in globals.css. data-open/closed deliberately NOT mapped (would enable enter/exit animations; could not verify them because the hidden preview pane freezes animation timelines).
