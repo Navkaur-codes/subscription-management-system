@@ -1,31 +1,46 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Receipt } from "lucide-react";
+import type { SubscriptionStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
-import { formatDate, formatMoney, humanize } from "@/lib/format";
+import { formatDate, formatMoney, humanize, toNum } from "@/lib/format";
 import { displayStatus } from "@/lib/invoice-status";
 import { priceSubscription, toDiscountRule } from "@/lib/subscriptions/pricing";
-import { PageHeader, Section } from "@/components/shared/page-header";
+import { Section } from "@/components/shared/page-header";
 import { DataTable, EmptyState, type Column } from "@/components/shared/data-table";
-import { DetailList } from "@/components/shared/stat-card";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { FadeIn, Pulse } from "@/components/motion";
-import { StatusStepper } from "@/components/subscriptions/status-stepper";
+import { AvatarName, Stepper, Timeline } from "@/components/shared/display";
 import { StatusActions } from "@/components/subscriptions/status-actions";
+import { activity } from "@/components/subscriptions/activity";
 import { TotalsPanel } from "@/components/subscriptions/totals-panel";
+import { BillingCard } from "@/components/subscriptions/billing-card";
 
 export const metadata = { title: "Subscription" };
 
-type LineRow = { id: string; name: string; quantity: number; unitPrice: number; taxRate: number; discount: number; amount: number };
+const PER = { DAILY: "day", WEEKLY: "week", MONTHLY: "month", YEARLY: "year" } as const;
+const STEPS: SubscriptionStatus[] = ["DRAFT", "QUOTATION", "CONFIRMED", "ACTIVE", "CLOSED"];
+
+type LineRow = { id: string; name: string; sub?: string; quantity: number; unitPrice: number; taxRate: number; discount: number; amount: number };
 type InvoiceRow = { id: string; number: string; invoiceDate: Date; dueDate: Date; status: string; total: number };
 
 const lineColumns: Column<LineRow>[] = [
-  { key: "name", header: "Product", cell: (r) => r.name },
+  {
+    key: "name",
+    header: "Product",
+    cell: (r) => (
+      <div>
+        <p className="font-medium">{r.name}</p>
+        {r.sub && <p className="text-xs text-muted-foreground">{r.sub}</p>}
+      </div>
+    ),
+  },
   { key: "qty", header: "Qty", align: "right", cell: (r) => r.quantity },
   { key: "unit", header: "Unit price", align: "right", cell: (r) => formatMoney(r.unitPrice) },
   { key: "disc", header: "Discount", align: "right", cell: (r) => (r.discount ? formatMoney(-r.discount) : "—") },
   { key: "tax", header: "Tax", align: "right", cell: (r) => `${r.taxRate}%` },
-  { key: "amount", header: "Amount", align: "right", cell: (r) => formatMoney(r.amount) },
+  { key: "amount", header: "Amount", align: "right", cell: (r) => <span className="font-medium">{formatMoney(r.amount)}</span> },
 ];
 
 const invoiceColumns: Column<InvoiceRow>[] = [
@@ -61,7 +76,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const totals = priceSubscription(sub.lines, sub.discount ? toDiscountRule(sub.discount) : null);
   const lineRows: LineRow[] = sub.lines.map((l, i) => ({
     id: l.id,
-    name: l.product.name + (l.variant ? ` · ${l.variant.attribute}: ${l.variant.value}` : ""),
+    name: l.product.name,
+    sub: l.variant ? `${l.variant.attribute}: ${l.variant.value}` : undefined,
     quantity: l.quantity,
     unitPrice: totals.lines[i].unitPrice,
     taxRate: totals.lines[i].taxRate,
@@ -74,56 +90,100 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     invoiceDate: inv.invoiceDate,
     dueDate: inv.dueDate,
     status: displayStatus(inv),
-    total: Number(inv.total),
+    total: toNum(inv.total),
   }));
+  const period = sub.plan.billingPeriod.toLowerCase();
 
   return (
-    <>
-      <PageHeader
-        title={sub.number}
-        description={`${sub.customer.name} · ${sub.plan.name}`}
-        actions={<StatusActions id={sub.id} status={sub.status} plan={sub.plan} />}
-      />
-      <FadeIn className="space-y-6">
-        <Section title="Status" actions={<Pulse trigger={sub.status}><StatusBadge status={sub.status} /></Pulse>}>
-          <StatusStepper status={sub.status} />
-        </Section>
+    <FadeIn className="space-y-8">
+      <section className="card-surface p-5 sm:p-6">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 space-y-3">
+            <p className="eyebrow">
+              <Link href="/subscriptions" className="hover:text-foreground">Subscriptions</Link> / {sub.number}
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-[28px] font-semibold tracking-tight">{sub.number}</h1>
+              <Pulse trigger={sub.status}>
+                <StatusBadge status={sub.status} />
+              </Pulse>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+              <Link href={`/customers/${sub.customer.id}`} className="min-w-0 rounded-lg hover:opacity-80">
+                <AvatarName name={sub.customer.name} sub={sub.customer.email} />
+              </Link>
+              <span className="rounded-full border bg-muted px-2.5 py-0.5 text-xs font-medium">
+                {sub.plan.name} · {period}
+              </span>
+            </div>
+          </div>
+          <div className="shrink-0 lg:text-right">
+            <p className="eyebrow">Recurring total</p>
+            <p className="num text-[30px] font-semibold tracking-tight">{formatMoney(totals.total)}</p>
+            <p className="text-xs text-muted-foreground">per {PER[sub.plan.billingPeriod]} incl. tax</p>
+          </div>
+        </div>
+        <div className="mt-6 flex flex-wrap gap-2 border-t pt-5">
+          <StatusActions id={sub.id} status={sub.status} plan={sub.plan} />
+        </div>
+        <div className="mt-5 overflow-x-auto">
+          <Stepper steps={STEPS.map(humanize)} current={STEPS.indexOf(sub.status === "PAUSED" ? "ACTIVE" : sub.status)} side={sub.status === "PAUSED" ? "Paused" : undefined} />
+        </div>
+      </section>
 
-        <Section title="Overview">
-          <DetailList
-            items={[
-              { label: "Customer", value: <Link href={`/customers/${sub.customer.id}`} className="underline-offset-4 hover:underline">{sub.customer.name}</Link> },
-              { label: "Plan", value: sub.plan.name },
-              { label: "Billing period", value: humanize(sub.plan.billingPeriod) },
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
+          <Section title="Order lines" description={`${sub.lines.length} product${sub.lines.length === 1 ? "" : "s"} billed ${period}`}>
+            <DataTable columns={lineColumns} rows={lineRows} />
+            <div className="mt-5">
+              <TotalsPanel totals={totals} label="Total per period" />
+            </div>
+          </Section>
+
+          <Section title="Invoices" description={`${invoices.length} invoice${invoices.length === 1 ? "" : "s"} issued`}>
+            <DataTable
+              columns={invoiceColumns}
+              rows={invoiceRows}
+              rowHref={(r) => `/invoices/${r.id}`}
+              empty={<EmptyState icon={Receipt} title="No invoices yet" description={sub.status === "ACTIVE" ? "Use “Create invoice” to bill the next period." : "Invoices start once the subscription is active."} />}
+            />
+          </Section>
+          {sub.notes && (
+            <Section title="Notes">
+              <p className="text-sm whitespace-pre-line text-muted-foreground">{sub.notes}</p>
+            </Section>
+          )}
+        </div>
+
+        <div className="min-w-0 space-y-6">
+          <BillingCard
+            title="Billing summary"
+            rows={[
+              { label: "Next invoice", value: formatDate(sub.nextInvoiceDate) },
               { label: "Start date", value: formatDate(sub.startDate) },
               { label: "Expiry date", value: formatDate(sub.expiryDate) },
-              { label: "Next invoice", value: formatDate(sub.nextInvoiceDate) },
+              { label: "Billing period", value: humanize(sub.plan.billingPeriod) },
               { label: "Payment terms", value: `${sub.paymentTerms} days` },
-              { label: "Discount", value: sub.discount ? `${sub.discount.name}${totals.discountApplied ? "" : ` (not applied: ${totals.discountReason})`}` : "—" },
-              { label: "Created by", value: sub.createdBy?.name ?? "—" },
-              ...(sub.quotationExpiry ? [{ label: "Quotation valid until", value: formatDate(sub.quotationExpiry) }] : []),
-              ...(sub.closedAt ? [{ label: "Closed on", value: formatDate(sub.closedAt) }] : []),
+              {
+                label: "Discount",
+                value: sub.discount ? (
+                  <span className={totals.discountApplied ? undefined : "text-muted-foreground"}>
+                    {sub.discount.name}
+                    {!totals.discountApplied && <span className="block text-xs font-normal">{totals.discountReason}</span>}
+                  </span>
+                ) : (
+                  "—"
+                ),
+              },
+              ...(sub.quotationExpiry ? [{ label: "Quote valid until", value: formatDate(sub.quotationExpiry) }] : []),
             ]}
           />
-          {sub.notes && <p className="mt-4 text-sm text-muted-foreground">{sub.notes}</p>}
-        </Section>
-
-        <Section title="Order lines" description={`Billed ${sub.plan.billingPeriod.toLowerCase()}`}>
-          <DataTable columns={lineColumns} rows={lineRows} />
-          <div className="mt-4">
-            <TotalsPanel totals={totals} label="Total per period" />
-          </div>
-        </Section>
-
-        <Section title="Invoices" description={`${invoices.length} invoice${invoices.length === 1 ? "" : "s"}`}>
-          <DataTable
-            columns={invoiceColumns}
-            rows={invoiceRows}
-            rowHref={(r) => `/invoices/${r.id}`}
-            empty={<EmptyState title="No invoices yet" description={sub.status === "ACTIVE" ? "Use “Create invoice” to bill the next period." : "Invoices start once the subscription is active."} />}
-          />
-        </Section>
-      </FadeIn>
-    </>
+          <section className="card-surface p-5">
+            <h2 className="mb-4 text-[15px] font-semibold">Activity</h2>
+            <Timeline items={activity(sub, invoiceRows)} />
+          </section>
+        </div>
+      </div>
+    </FadeIn>
   );
 }

@@ -65,7 +65,7 @@ export function LinesEditor({
                   <td className="min-w-48 p-2">
                     <Select value={l.productId} onValueChange={(v) => setProduct(i, v)}>
                       <SelectTrigger className="w-full" size="sm">
-                        <SelectValue placeholder="Select product" />
+                        <SelectValue placeholder="Select product">{product?.name}</SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {products.map((p) => (
@@ -83,7 +83,7 @@ export function LinesEditor({
                       disabled={!product?.variants.length}
                     >
                       <SelectTrigger className="w-full" size="sm">
-                        <SelectValue />
+                        <SelectValue>{product?.variants.find((x) => x.id === l.variantId)?.label ?? "No variant"}</SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value={NONE}>No variant</SelectItem>

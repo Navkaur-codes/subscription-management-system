@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { Pencil } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 import { toDateInput, toNum } from "@/lib/format";
@@ -38,7 +39,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
 
   return (
     <>
-      <PageHeader title={`Edit ${sub.number}`} description="Only draft and quotation subscriptions can be edited." />
+      <PageHeader eyebrow="Sales · Subscriptions" icon={Pencil} title={`Edit ${sub.number}`} description="Only draft and quotation subscriptions can be edited." />
       <SubscriptionForm id={sub.id} options={options} initial={initial} />
     </>
   );

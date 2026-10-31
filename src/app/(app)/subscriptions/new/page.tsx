@@ -1,4 +1,5 @@
 import { addDays } from "date-fns";
+import { Repeat } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 import { today } from "@/lib/dates";
@@ -56,6 +57,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ t
   return (
     <>
       <PageHeader
+        eyebrow="Sales · Subscriptions"
+        icon={Repeat}
         title="New subscription"
         description={template ? `Prefilled from template “${template.name}”.` : "Create a quotation or subscription for a customer."}
       />

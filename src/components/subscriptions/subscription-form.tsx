@@ -11,13 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FormField, FormGrid } from "@/components/shared/form-field";
 import { Section } from "@/components/shared/page-header";
 import { priceLines } from "@/lib/pricing";
-import { toDateInput } from "@/lib/format";
+import { formatMoney, toDateInput } from "@/lib/format";
 import { termEnd } from "@/lib/subscriptions/pricing";
 import type { FormOptions } from "@/lib/subscriptions/form-options";
 import { saveSubscription } from "@/app/(app)/subscriptions/actions";
 import { CustomerPicker } from "./customer-picker";
 import { LinesEditor, newLine } from "./lines-editor";
-import { TotalsPanel } from "./totals-panel";
+import { FormSummary } from "./form-summary";
 import type { SubscriptionFormValues } from "./form-types";
 
 const NONE = "none";
@@ -72,9 +72,20 @@ export function SubscriptionForm({
     });
   };
 
+  const customer = options.customers.find((c) => c.id === v.customerId);
+  const checks = [
+    { ok: !!customer, label: customer ? "Customer selected" : "Select a customer" },
+    { ok: !!plan, label: plan ? "Plan selected" : "Select a plan" },
+    { ok: validLines.length > 0, label: validLines.length ? `${validLines.length} line(s), ${totalQty} units` : "Add at least one line" },
+    ...(plan ? [{ ok: !minQtyError, label: minQtyError || `Meets plan minimum (${plan.minQuantity})` }] : []),
+    ...(discount ? [{ ok: totals.discountApplied, label: totals.discountApplied ? `${discount.name} applied` : `Discount not applied: ${totals.discountReason}` }] : []),
+  ];
+
   return (
-    <form onSubmit={submit} className="space-y-6">
-      <Section title="Details">
+    <form onSubmit={submit} className="pb-4">
+      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="min-w-0 space-y-6 lg:col-span-2">
+      <Section title="Customer & plan" description="Who is subscribing and which plan sets the billing period and rules.">
         <FormGrid>
           <FormField label="Customer" required error={errors.customerId}>
             <CustomerPicker customers={options.customers} value={v.customerId} onChange={(customerId) => set({ customerId })} />
@@ -85,7 +96,7 @@ export function SubscriptionForm({
           <FormField label="Plan" required error={errors.planId} hint={plan ? `Min. quantity ${plan.minQuantity}` : undefined}>
             <Select value={v.planId} onValueChange={(planId) => set({ planId, expiryDate: recomputeExpiry(planId, v.startDate) })}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select plan" />
+                <SelectValue placeholder="Select plan">{plan && `${plan.name} · ${plan.billingPeriod.toLowerCase()}`}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {options.plans.map((p) => (
@@ -96,6 +107,11 @@ export function SubscriptionForm({
               </SelectContent>
             </Select>
           </FormField>
+        </FormGrid>
+      </Section>
+
+      <Section title="Schedule & terms" description="Expiry defaults to one term (12 periods, or 1 year for yearly plans).">
+        <FormGrid>
           <FormField label="Start date" required error={errors.startDate}>
             <Input
               type="date"
@@ -118,7 +134,7 @@ export function SubscriptionForm({
           >
             <Select value={v.discountId || NONE} onValueChange={(d) => set({ discountId: d === NONE ? "" : d })}>
               <SelectTrigger className="w-full">
-                <SelectValue />
+                <SelectValue>{discount ? discount.name : "No discount"}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={NONE}>No discount</SelectItem>
@@ -136,22 +152,33 @@ export function SubscriptionForm({
         </FormGrid>
       </Section>
 
-      <Section title="Order lines" description={minQtyError || `Total quantity ${totalQty}`}>
+      <Section title="Order lines" description="Prices and tax come from the catalog; unit price can be overridden.">
         <LinesEditor products={options.products} lines={v.lines} priced={pricedFor(v.lines, totals.lines)} onChange={(lines) => set({ lines })} />
         {errors.lines && <p className="mt-2 text-xs text-destructive">{errors.lines}</p>}
-        <div className="mt-6">
-          <TotalsPanel totals={totals} label="Total per period" />
-        </div>
       </Section>
+      </div>
 
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={() => router.back()}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={pending}>
-          {pending && <Loader2 className="size-4 animate-spin" />}
-          {id ? "Save changes" : "Create subscription"}
-        </Button>
+      <FormSummary
+        customer={customer?.name}
+        plan={plan ? `${plan.name} · billed ${plan.billingPeriod.toLowerCase()}` : undefined}
+        totals={totals}
+        checks={checks}
+      />
+      </div>
+
+      <div className="sticky bottom-0 z-20 mt-6 flex items-center justify-between gap-3 rounded-2xl border bg-card/90 p-3 shadow-card backdrop-blur">
+        <p className="num hidden truncate pl-2 text-sm text-muted-foreground sm:block">
+          Total per period <span className="font-semibold text-foreground">{formatMoney(totals.total)}</span>
+        </p>
+        <div className="ml-auto flex gap-2">
+          <Button type="button" variant="outline" onClick={() => router.back()}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={pending}>
+            {pending && <Loader2 className="size-4 animate-spin" />}
+            {id ? "Save changes" : "Create subscription"}
+          </Button>
+        </div>
       </div>
     </form>
   );
