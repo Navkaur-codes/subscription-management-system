@@ -7,7 +7,11 @@ export const metadata = { title: "Create account" };
 export default function SignupPage() {
   return (
     <>
-      <AuthHeading title="Create your account" subtitle="Manage your subscriptions and invoices in one place." />
+      <AuthHeading
+        eyebrow="02 — Create account"
+        title={<>Start your <em>loop</em>.</>}
+        subtitle="See every subscription, invoice and payment of yours in one place."
+      />
       <AuthForm
         action={signupAction}
         submitLabel="Create account"

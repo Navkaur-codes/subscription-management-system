@@ -8,11 +8,15 @@ export default async function ResetPasswordPage({ searchParams }: { searchParams
   const { token } = await searchParams;
   if (!token)
     return (
-      <AuthHeading title="Invalid link" subtitle="This reset link is missing its token. Request a new one from the sign-in page." />
+      <AuthHeading eyebrow="Account recovery" title={<>This link has <em>expired</em>.</>} subtitle="This reset link is missing its token. Request a new one from the sign-in page." />
     );
   return (
     <>
-      <AuthHeading title="Choose a new password" subtitle="Your new password must meet the same rules as sign-up." />
+      <AuthHeading
+        eyebrow="Account recovery"
+        title={<>Choose a <em>new</em> password.</>}
+        subtitle="Your new password must meet the same rules as sign-up."
+      />
       <AuthForm
         action={resetPasswordAction}
         hidden={{ token }}

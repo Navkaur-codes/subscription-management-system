@@ -23,8 +23,8 @@ Seed logins (password **Brightloop@123**): `admin@brightloop.test`, `staff@brigh
 ## File ownership (HARD RULE)
 | Owner | Paths |
 |---|---|
-| **Main only** | `prisma/**`, `src/lib/*.ts` (top level), `src/lib/validators/auth.ts`, `src/middleware.ts`, `package.json`, `CLAUDE.md`, `docs/CLAUDE.md`, `docs/CONTRACTS.md` |
-| **E – Design system** | `src/app/globals.css`, `src/app/layout.tsx`, `src/components/ui/**`, `src/components/shared/**`, `src/components/motion/**`, `src/components/shell/**`, `src/app/(auth)/**` (UI only — keep actions logic), `src/app/(app)/layout.tsx`, `src/app/portal/layout.tsx`, `src/app/portal/portal-nav.tsx`, `src/app/forbidden/**`, `src/app/(app)/search/**` (command palette API) |
+| **Main only** | `prisma/**`, `src/app/globals.css`, `src/app/layout.tsx`, `src/app/(auth)/**`, `src/lib/*.ts` (top level), `src/lib/validators/auth.ts`, `src/middleware.ts`, `package.json`, `CLAUDE.md`, `docs/CLAUDE.md`, `docs/CONTRACTS.md` |
+| **E – Design system** | `src/components/ui/**`, `src/components/shared/**`, `src/components/motion/**`, `src/components/shell/**`, `src/app/(app)/layout.tsx`, `src/app/portal/layout.tsx`, `src/app/portal/portal-nav.tsx`, `src/app/forbidden/**`, `src/app/(app)/search/**` (command palette API) |
 | **A – Catalog** | `src/app/(app)/{products,plans,taxes,discounts,templates}/**`, `src/lib/validators/catalog.ts`, `src/components/catalog/**` |
 | **B – Subscriptions** | `src/app/(app)/subscriptions/**`, `src/lib/subscriptions/**`, `src/lib/validators/subscription.ts`, `src/components/subscriptions/**` |
 | **C – Billing** | `src/app/(app)/{invoices,payments}/**`, `src/lib/billing/**`, `src/lib/validators/billing.ts`, `src/components/billing/**` |
@@ -45,8 +45,8 @@ Need a schema field, shared helper, nav change or new package? **Don't edit it.*
 - Roles: mutations on catalog (products/plans/taxes/discounts/templates) = ADMIN only; STAFF can view. Discounts & team members: ADMIN only. Hide buttons the role can't use **and** enforce in the action.
 - No `any`, no `console.log` left behind, no commented-out code. Keep files < ~250 lines; split components.
 
-## Design system — see docs/DESIGN.md (v2 "Premium SaaS")
-- **Read `docs/DESIGN.md` before any UI work.** It replaces the old monochrome rules.
+## Design system — see docs/DESIGN.md (v3 "Ember Loop")
+- **Read `docs/DESIGN.md` before any UI work.** v3 replaces v2: no violet/indigo, no gradients/glass/glow; ember accent, serif display type, GSAP motion primitives.
 - Use tokens/utilities from globals.css (`bg-card`, `text-muted-foreground`, `bg-brand-gradient`, `shadow-card` …). Never raw palette classes in pages (`bg-blue-500` etc.) — status colour only via `<StatusBadge>`, chart colour only via `@/components/shared/charts`.
 - Shared components (`PageHeader`, `KpiCard`, `ChartCard`, charts, `AvatarName`, `MetricStrip`, `Timeline`, `Stepper`, `DataTable` …) are built by Session E. If one you need isn't there yet, do the rest of your work first and check again; never create your own copy.
 - Charts: Recharts (installed) — only through the shared chart components.

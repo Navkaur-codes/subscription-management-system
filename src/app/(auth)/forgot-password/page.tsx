@@ -7,7 +7,11 @@ export const metadata = { title: "Forgot password" };
 export default function ForgotPasswordPage() {
   return (
     <>
-      <AuthHeading title="Forgot your password?" subtitle="We'll email a reset link to your registered address." />
+      <AuthHeading
+        eyebrow="Account recovery"
+        title={<>Lost your <em>key</em>?</>}
+        subtitle="We'll email a reset link to your registered address."
+      />
       <AuthForm
         action={forgotPasswordAction}
         submitLabel="Send reset link"

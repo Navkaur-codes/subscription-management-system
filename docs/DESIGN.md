@@ -1,48 +1,46 @@
-# Brightloop Design System v2 — "Premium SaaS"
+# Brightloop Design System v3 — "Ember Loop"
 
-Goal: judges should think "this is a real funded product" (Linear / Stripe / Vercel tier) within 3 seconds.
-Replaces the old "monochrome only" rule. Every session follows THIS file. Tokens and shared components are owned by **Session E**; module sessions use them, never fork them.
+**Why v3:** v2 (violet→indigo gradient, glassy floating cards, rounded-2xl everything) reads as a generic AI-generated SaaS template. v3 is a real brand: editorial, warm, confident, with one signature motif and purposeful motion. Every session follows THIS file. If a v2 rule conflicts, v3 wins.
 
-## 1. Look & feel
-- **Dark ink sidebar** (near-black with a faint violet glow at top) + **soft light canvas** for content. Optional dark mode for the whole app (toggle in top bar) — so only use tokens, never hard-coded colours.
-- **One brand gradient**: violet → indigo (`--brand-from: #7C3AED`, `--brand-to: #4F46E5`). Used for: logo mark, primary buttons, active nav indicator, key chart series, hero highlights. Never for large background areas except the auth panel and dashboard hero.
-- **Depth**: cards `rounded-2xl`, white, `ring-1 ring-black/5` (dark: `ring-white/10`), layered soft shadow (`shadow-card` token). Hover on clickable cards: lift 2px + stronger shadow (CSS transition, 150ms).
-- **Typography**: Inter. Page title 28px/600 tracking-tight; section title 15px/600; eyebrow labels 11px uppercase tracking-wider muted; numbers `tabular-nums`. Big KPI numbers 30px/600.
-- **Colour use**: neutral greys for UI; status colours ONLY via `StatusBadge` (soft tinted pill + dot: emerald=success, amber=warning, sky=info, rose=danger, zinc=neutral — muted 10% tints, never saturated blocks). Charts use the chart palette below. No random Tailwind colours in pages.
-- **Density**: generous spacing (`space-y-8` between page sections, `gap-6` grids), rows 52px.
+## 1. Identity
+- **Name story:** Brightloop = recurring revenue = *the loop*. Signature visual: an **orbit ring** (thin ink circle) with **ember dots travelling around it** — each dot is a payment coming back every cycle. Used on login, dashboard hero, logo, empty states, loading.
+- **Palette (tokens already in globals.css):** paper `#F6F4EF` canvas, ink `#16140F`, card `#FFFDF9`, warm greys, **ember `#FF5B1F`** as the ONLY accent (sparingly: active nav, key number, focus ring, one chart series, small highlights). Dark mode = ink canvas, paper text, same ember.
+  - Tailwind: `bg-canvas`, `bg-card`, `text-foreground`, `text-muted-foreground`, `bg-primary` (ink in light, paper in dark), `text-ember`, `bg-ember`, `bg-ember-soft`, `bg-ink`, `bg-paper`, `border-border`.
+  - **Banned:** purple/violet/indigo anything, `bg-brand-gradient` on large areas, glassmorphism (`backdrop-blur` on cards), glow shadows (`rgb(124 58 237 …)`), gradient text, emoji.
+- **Type:**
+  - Display: **Instrument Serif** (`font-display`), used for page titles, hero headlines, big KPI numbers on the dashboard hero. Put the key word in italics: `<h1 className="font-display text-5xl">Revenue that <em>comes back</em>.</h1>`.
+  - UI: **Geist** (default `font-sans`). Labels 12–13px, medium.
+  - Numbers / IDs: **Geist Mono** (`font-mono-num`) for invoice + subscription numbers and money columns.
+- **Shape:** radius 10px (`rounded-lg`/`rounded-xl` max on cards), hairline borders first, shadows almost none (`shadow-card` is a 1px hairline lift). Use **ruled lines** (border-t/border-b dividers, editorial grid) instead of floating boxes where possible.
+- **Status pills:** keep `<StatusBadge>` (soft tint + dot); tokens already warm-tuned.
 
-## 2. Tokens (globals.css — Session E)
-`--brand`, `--brand-from`, `--brand-to`, `--brand-soft`, `--sidebar*` (dark ink even in light mode), `--canvas` (#F7F7FB light / zinc-950 dark), `--card`, `--ring-subtle`, `--shadow-card`, `--shadow-card-hover`, status tints `--success|warning|info|danger(-soft)`, chart palette `--chart-1..6`: violet #7C3AED, indigo #4F46E5, sky #0EA5E9, emerald #10B981, amber #F59E0B, rose #F43F5E.
-Utility classes: `bg-brand-gradient`, `text-brand-gradient` (gradient text), `shadow-card`, `card-hover`, `bg-grid` (faint grid texture for hero areas).
+## 2. Motion (GSAP 3.15 — SplitText, ScrambleText, DrawSVG, MotionPath, Flip are installed & free)
+All motion lives in `@/components/motion` (Session E builds these; pages never import gsap directly). Respect `prefers-reduced-motion`. Animate transform/opacity/stroke only. Durations 0.4–0.9s, `power3.out` / `expo.out`. Each page: ONE orchestrated entrance, not everything bouncing.
 
-## 3. Shared components (Session E — keep existing props working, add these)
-| Component | Props | Notes |
+| Primitive | What it does | Where |
 |---|---|---|
-| `PageHeader` | `title, description?, actions?, eyebrow?, icon?` | eyebrow = small breadcrumb-like label |
-| `KpiCard` (in `stat-card.tsx`) | `label, value: ReactNode, icon: LucideIcon, delta?: number (%), deltaLabel?, trend?: number[], tone?: "brand"|"success"|"warning"|"danger"|"info"` | gradient-tinted icon tile, delta chip (▲ +12% green / ▼ red), tiny sparkline from `trend` |
-| `StatCard` | unchanged props | restyled to match KpiCard |
-| `ChartCard` | `title, description?, actions?, children, className?` | card wrapper for charts |
-| `charts.tsx` (client) | `AreaTrend({data, xKey, yKey, format?})`, `BarTrend({data, xKey, bars:[{key,label}]})`, `Donut({data:[{name,value,color?}], centerLabel?, centerValue?})`, `Sparkline({data})` | Recharts, gradient fills, themed tooltips, `ResponsiveContainer`, no animation > 600ms |
-| `AvatarName` | `name, sub?, size?` | initials avatar (colour from name hash, chart palette) + name + muted sub line — use for customers/users in tables |
-| `StatusBadge` | unchanged | soft tinted pill + dot |
-| `DataTable` | unchanged | rounded-2xl card, sticky header, 52px rows, hover row, nicer empty state |
-| `EmptyState` | `title, description?, action?, icon?` | icon in gradient ring |
-| `Section` | unchanged | rounded-2xl card |
-| `FilterTabs` | unchanged | pill segmented control |
-| `MetricStrip` | `items: {label, value, hint?}[]` | horizontal summary bar above tables (count / total / outstanding) |
-| `Timeline` | `items: {title, description?, time, icon?, tone?}[]` | vertical activity timeline |
-| `Stepper` | `steps: string[], current: number, side?: string` | lifecycle progress (subscriptions) |
+| `<RevealText as="h1">` | SplitText lines/words slide up from a mask, 0.05s stagger | page titles, hero headlines |
+| `<ScrambleNumber value format>` | ScrambleText digits → final value | KPI numbers, invoice totals |
+| `<DrawLine>` / chart prop `animate` | DrawSVG stroke draw-in of chart lines | AreaTrend / Sparkline |
+| `<Orbit size dots speed>` | SVG loop ring + ember dots on MotionPath, infinite slow rotation (paused off-screen) | login, dashboard hero, empty states, logo mark |
+| `<Ticker items>` | horizontal marquee of live events ("INV/2026/12931 paid · ₹31,947 · UPI") | dashboard hero, login |
+| `<Magnetic>` | button follows cursor slightly on hover | primary CTAs only |
+| `<FlipIndicator>` / Flip | active pill glides between items | sidebar nav, FilterTabs, segmented controls |
+| `<Stagger>` (existing) | list/card entrance | grids, first 12 table rows |
+| `<CountUp>` (existing) | keep for small numbers | |
 
-Shell (Session E): dark sidebar with gradient logo mark, grouped nav, active item = soft white/10 pill + gradient left bar, collapsible on desktop, sheet on mobile; user card at sidebar bottom. Top bar: breadcrumb, **⌘K command palette** (search customers, subscriptions by number, invoices by number + jump to any page), theme toggle, user menu. Auth pages: split screen — form left; right = dark brand-gradient panel with floating product preview cards (KPI card, mini chart, invoice chip) gently animated with GSAP. Portal: same visual language, top nav.
+## 3. Layout patterns
+- **Page header:** small mono eyebrow (e.g. `SALES / 02`), serif title with italic accent word, one-line description, actions right. Ruled line under the header.
+- **Dashboard hero:** ink card (dark in both themes) — left: serif headline ("₹9.12 Cr *recurring*, up 22.6%"), sub-copy, actions; right: `<Orbit>` with live dots; bottom: `<Ticker>` of latest payments/invoices.
+- **KPI row:** borderless cells separated by vertical rules on one card (not 5 floating cards); label, mono/serif number with ScrambleNumber, delta, sparkline.
+- **Tables:** hairline rows, mono numbers, AvatarName for people, ember dot for "new today".
+- **Login:** see Main's implementation (`src/app/(auth)`) — the reference for tone.
 
-## 4. Page patterns (module sessions)
-- **List pages**: PageHeader (eyebrow + icon) → MetricStrip (2–4 aggregate numbers for current filter) → Toolbar (search + FilterTabs) → DataTable (first column = AvatarName or bold number + muted sub-line) → Pagination.
-- **Detail pages**: hero card (title, StatusBadge, key facts, primary actions) → 2/3 + 1/3 grid: main Sections left, side card(s) right (customer card, totals, timeline).
-- **Forms**: card sections with titles + helper text, 2-col grid, sticky bottom action bar (Cancel / Save) on long forms, live summary panel on the right where totals exist.
-- **Catalog**: plans as pricing cards grid (price big, period, flags as chips) with a list/grid toggle; products with variant chips.
-- Use GSAP only via `@/components/motion` (FadeIn, Stagger, CountUp, Pulse).
+## 4. Ownership for v3
+- **Main:** `globals.css` tokens, `src/app/layout.tsx` fonts, `src/app/(auth)/**` (login/signup/forgot/reset), `docs/DESIGN.md`.
+- **E:** motion primitives (§2), shell (sidebar Flip indicator, logo with orbit mark, topbar), shared components restyle to v3, purge v2 violet/glow/glass from shared code, portal layout, forbidden page.
+- **D:** dashboard hero + KPI row + charts with draw-in, reports, customers, portal pages.
+- **A / B / C:** their pages: serif titles via PageHeader, mono numbers, purge hard-coded v2 colours/glows, one signature moment each (A: plan cards hover reveal; B: lifecycle stepper animated with Flip; C: invoice total ScrambleNumber + payment progress draw).
 
-## 5. Quality bar & testing (every session)
-- Test your pages in the browser at **1440×900 and 375×812**, light and dark (once the toggle exists), as the relevant role. No horizontal page scroll, no overlapping text, no raw unstyled elements.
-- Performance stays: list pages < 1 s on seeded data; charts load only on pages that use them.
-- `npm run typecheck` + `npm run lint` clean.
+## 5. Quality bar
+Test at 1440×900 and 375×812, light + dark. No v2 leftovers (`grep -rn "124 58 237\|7c3aed\|violet\|indigo" src`). typecheck + lint clean. Page JS stays light: GSAP plugins registered once in motion/index.

@@ -4,121 +4,131 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Brightloop design tokens — v2 "Premium SaaS" (see docs/DESIGN.md).
- * Neutral greys for UI, ONE violet→indigo brand gradient, status colour only via <StatusBadge>,
+ * Brightloop design tokens — v3 "Ember Loop" (see docs/DESIGN.md).
+ * Warm paper + ink, ONE ember accent, serif display type. Status colour only via <StatusBadge>,
  * chart colour only via --chart-1..6. Never use raw Tailwind palette colours in pages.
  */
 :root {
-  --radius: 0.75rem;
-  --canvas: #f7f7fb;
-  --background: #f7f7fb;
-  --foreground: oklch(0.2 0.02 285);
-  --card: #ffffff;
-  --card-foreground: oklch(0.2 0.02 285);
-  --popover: #ffffff;
-  --popover-foreground: oklch(0.2 0.02 285);
-  --primary: #5b3ee6;
-  --primary-foreground: #ffffff;
-  --secondary: oklch(0.965 0.005 285);
-  --secondary-foreground: oklch(0.2 0.02 285);
-  --muted: oklch(0.965 0.005 285);
-  --muted-foreground: oklch(0.52 0.02 285);
-  --accent: oklch(0.955 0.012 285);
-  --accent-foreground: oklch(0.2 0.02 285);
-  --destructive: #e11d48;
-  --border: oklch(0.915 0.008 285);
-  --input: oklch(0.9 0.01 285);
-  --ring: #6d4aff;
-  --ring-subtle: rgb(15 15 40 / 0.06);
+  --radius: 0.625rem;
+  --canvas: #f6f4ef;
+  --background: #f6f4ef;
+  --foreground: #16140f;
+  --card: #fffdf9;
+  --card-foreground: #16140f;
+  --popover: #fffdf9;
+  --popover-foreground: #16140f;
+  --primary: #16140f;
+  --primary-foreground: #fbf8f2;
+  --secondary: #efebe3;
+  --secondary-foreground: #16140f;
+  --muted: #efebe3;
+  --muted-foreground: #6f6a60;
+  --accent: #ece7dd;
+  --accent-foreground: #16140f;
+  --destructive: #d92d20;
+  --border: #e4dfd4;
+  --input: #dcd6ca;
+  --ring: #ff5b1f;
+  --ring-subtle: rgb(22 20 15 / 0.07);
 
-  /* brand */
-  --brand-from: #7c3aed;
-  --brand-to: #4f46e5;
-  --brand: #5b3ee6;
+  /* brand — "ember": one signature colour, used sparingly */
+  --brand-from: #ff7a3d;
+  --brand-to: #ff4d12;
+  --brand: #ff5b1f;
   --brand-foreground: #ffffff;
-  --brand-soft: #efebff;
+  --brand-soft: #ffeadf;
+  --ember: #ff5b1f;
+  --ember-soft: #ffeadf;
+  --ink: #16140f;
+  --paper: #f6f4ef;
 
-  /* depth */
-  --shadow-card: 0 1px 2px rgb(16 16 40 / 0.04), 0 2px 6px -1px rgb(16 16 40 / 0.05), 0 12px 24px -12px rgb(16 16 40 / 0.08);
-  --shadow-card-hover: 0 2px 4px rgb(16 16 40 / 0.05), 0 8px 16px -4px rgb(16 16 40 / 0.08), 0 24px 40px -16px rgb(76 50 220 / 0.18);
+  /* depth — flatter, editorial: hairlines first, shadow second */
+  --shadow-card: 0 1px 0 rgb(22 20 15 / 0.04), 0 1px 2px rgb(22 20 15 / 0.04);
+  --shadow-card-hover: 0 1px 0 rgb(22 20 15 / 0.05), 0 12px 28px -14px rgb(22 20 15 / 0.22);
 
   /* status (strong / soft tint) */
-  --success: #059669;
-  --success-soft: rgb(16 185 129 / 0.1);
+  --success: #15803d;
+  --success-soft: rgb(21 128 61 / 0.09);
   --warning: #b45309;
-  --warning-soft: rgb(245 158 11 / 0.12);
-  --info: #0284c7;
-  --info-soft: rgb(14 165 233 / 0.1);
-  --danger: #e11d48;
-  --danger-soft: rgb(244 63 94 / 0.1);
-  --neutral: oklch(0.5 0.015 285);
-  --neutral-soft: oklch(0.5 0.015 285 / 0.1);
-  /* legacy dot tokens (kept for existing code) */
-  --dot-neutral: oklch(0.7 0.015 285);
-  --dot-info: #0ea5e9;
-  --dot-success: #10b981;
-  --dot-warning: #f59e0b;
-  --dot-danger: #f43f5e;
+  --warning-soft: rgb(217 119 6 / 0.11);
+  --info: #1d4ed8;
+  --info-soft: rgb(29 78 216 / 0.08);
+  --danger: #d92d20;
+  --danger-soft: rgb(217 45 32 / 0.09);
+  --neutral: #6f6a60;
+  --neutral-soft: rgb(22 20 15 / 0.06);
+  --dot-neutral: #a8a294;
+  --dot-info: #2563eb;
+  --dot-success: #16a34a;
+  --dot-warning: #d97706;
+  --dot-danger: #dc2626;
 
-  /* dark ink sidebar — dark in BOTH themes */
-  --sidebar: #0d0c16;
-  --sidebar-foreground: #ecebf5;
-  --sidebar-muted: #8f8da6;
+  /* ink sidebar — dark in BOTH themes */
+  --sidebar: #12110d;
+  --sidebar-foreground: #f3efe6;
+  --sidebar-muted: #8f897b;
   --sidebar-border: rgb(255 255 255 / 0.07);
-  --sidebar-accent: rgb(255 255 255 / 0.07);
+  --sidebar-accent: rgb(255 255 255 / 0.06);
 
-  /* charts */
-  --chart-1: #7c3aed;
-  --chart-2: #4f46e5;
-  --chart-3: #0ea5e9;
-  --chart-4: #10b981;
-  --chart-5: #f59e0b;
-  --chart-6: #f43f5e;
+  /* charts — ember leads, ink + warm greys support */
+  --chart-1: #ff5b1f;
+  --chart-2: #16140f;
+  --chart-3: #b8ad98;
+  --chart-4: #ffa778;
+  --chart-5: #6f6a60;
+  --chart-6: #d92d20;
 }
 
 .dark {
-  --canvas: #09090b;
-  --background: #09090b;
-  --foreground: oklch(0.97 0.004 285);
-  --card: #131219;
-  --card-foreground: oklch(0.97 0.004 285);
-  --popover: #16151d;
-  --popover-foreground: oklch(0.97 0.004 285);
-  --primary: #8b6cff;
-  --primary-foreground: #ffffff;
-  --secondary: oklch(0.26 0.01 285);
-  --secondary-foreground: oklch(0.97 0.004 285);
-  --muted: oklch(0.24 0.01 285);
-  --muted-foreground: oklch(0.7 0.015 285);
-  --accent: oklch(0.26 0.015 285);
-  --accent-foreground: oklch(0.97 0.004 285);
-  --destructive: #fb7185;
-  --border: rgb(255 255 255 / 0.08);
-  --input: rgb(255 255 255 / 0.12);
-  --ring: #8b6cff;
-  --ring-subtle: rgb(255 255 255 / 0.08);
-  --brand: #8b6cff;
-  --brand-soft: rgb(124 58 237 / 0.16);
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 24px -12px rgb(0 0 0 / 0.6);
-  --shadow-card-hover: 0 2px 4px rgb(0 0 0 / 0.5), 0 24px 40px -16px rgb(124 58 237 / 0.3);
-  --success: #34d399;
-  --success-soft: rgb(16 185 129 / 0.14);
+  --canvas: #0e0d0a;
+  --background: #0e0d0a;
+  --foreground: #f3efe6;
+  --card: #171611;
+  --card-foreground: #f3efe6;
+  --popover: #1b1a14;
+  --popover-foreground: #f3efe6;
+  --primary: #f3efe6;
+  --primary-foreground: #16140f;
+  --secondary: #23211a;
+  --secondary-foreground: #f3efe6;
+  --muted: #201e18;
+  --muted-foreground: #a39d8f;
+  --accent: #26241d;
+  --accent-foreground: #f3efe6;
+  --destructive: #f97066;
+  --border: rgb(255 248 230 / 0.09);
+  --input: rgb(255 248 230 / 0.14);
+  --ring: #ff6b33;
+  --ring-subtle: rgb(255 248 230 / 0.08);
+  --brand: #ff6b33;
+  --brand-soft: rgb(255 91 31 / 0.15);
+  --ember-soft: rgb(255 91 31 / 0.15);
+  --shadow-card: 0 1px 0 rgb(255 248 230 / 0.03);
+  --shadow-card-hover: 0 16px 32px -16px rgb(0 0 0 / 0.7);
+  --success: #4ade80;
+  --success-soft: rgb(74 222 128 / 0.12);
   --warning: #fbbf24;
-  --warning-soft: rgb(245 158 11 / 0.14);
-  --info: #38bdf8;
-  --info-soft: rgb(14 165 233 / 0.14);
-  --danger: #fb7185;
-  --danger-soft: rgb(244 63 94 / 0.14);
-  --neutral: oklch(0.75 0.015 285);
-  --neutral-soft: rgb(255 255 255 / 0.07);
-  --sidebar: #0a0910;
-  --sidebar-border: rgb(255 255 255 / 0.06);
+  --warning-soft: rgb(251 191 36 / 0.12);
+  --info: #93b4ff;
+  --info-soft: rgb(147 180 255 / 0.12);
+  --danger: #f97066;
+  --danger-soft: rgb(249 112 102 / 0.13);
+  --neutral: #a39d8f;
+  --neutral-soft: rgb(255 248 230 / 0.07);
+  --sidebar: #0a0907;
+  --sidebar-border: rgb(255 248 230 / 0.06);
+  --chart-2: #f3efe6;
 }
 
 @theme inline {
-  --font-sans: var(--font-inter);
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: var(--font-geist);
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: var(--font-instrument), Georgia, serif;
   --color-canvas: var(--canvas);
+  --color-ember: var(--ember);
+  --color-ember-soft: var(--ember-soft);
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -269,4 +279,22 @@
     box-shadow: none !important;
     border: none !important;
   }
+}
+
+/* ── v3 "Ember Loop" type ─────────────────────────────── */
+/* Editorial display face. Pair with <em> for the italic accent word: "Recurring revenue, <em>handled</em>." */
+.font-display {
+  /* next/font vars directly: @theme inline values are not emitted as CSS variables */
+  font-family: var(--font-instrument), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+.font-display em {
+  font-style: italic;
+}
+/* Invoice / subscription numbers and money in mono */
+.font-mono-num {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
