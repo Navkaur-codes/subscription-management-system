@@ -3,6 +3,7 @@ import { PAGE_SIZE, pageParams } from "@/lib/action";
 import { formatDate, formatMoney } from "@/lib/format";
 import { displayStatus, outstanding } from "@/lib/invoice-status";
 import { portalCustomer } from "@/lib/insights/portal";
+import { MetricStrip } from "@/components/shared/metric-strip";
 import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
 import { Pagination } from "@/components/shared/list-controls";
@@ -14,13 +15,21 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
   const { customerId } = await portalCustomer();
   const { page, skip, take } = pageParams(await searchParams);
   const where = { customerId, status: { in: ["CONFIRMED", "PAID"] as ("CONFIRMED" | "PAID")[] } };
-  const [rows, total] = await Promise.all([
+  const [rows, total, sums] = await Promise.all([
     db.invoice.findMany({ where, orderBy: { invoiceDate: "desc" }, skip, take }),
     db.invoice.count({ where }),
+    db.invoice.aggregate({ where, _sum: { total: true, amountPaid: true } }),
   ]);
   return (
     <>
-      <PageHeader title="My invoices" />
+      <PageHeader eyebrow="Billing" title="My invoices" description="Download or print any invoice." />
+      <MetricStrip
+        items={[
+          { label: "Invoices", value: total },
+          { label: "Total billed", value: formatMoney(sums._sum.total) },
+          { label: "Paid", value: formatMoney(sums._sum.amountPaid) },
+        ]}
+      />
       <DataTable
         rows={rows}
         rowHref={(r) => `/portal/invoices/${r.id}`}

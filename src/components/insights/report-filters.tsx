@@ -11,6 +11,8 @@ export function ReportFilters({ view, plans }: { view: ReportView; plans: { id: 
   const { sp, set } = useQueryParams();
   const exportHref = `/reports/export?${sp.toString()}`;
   const all = "__all";
+  const status = sp.get("status");
+  const plan = sp.get("plan");
 
   return (
     <div className="mb-4 space-y-3">
@@ -29,12 +31,12 @@ export function ReportFilters({ view, plans }: { view: ReportView; plans: { id: 
           </a>
         </Button>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="card-surface flex flex-wrap items-center gap-2 p-3">
         <Input type="date" aria-label="From" className="w-40" value={sp.get("from") ?? ""} onChange={(e) => set({ from: e.target.value })} />
         <Input type="date" aria-label="To" className="w-40" value={sp.get("to") ?? ""} onChange={(e) => set({ to: e.target.value })} />
         <Select value={sp.get("status") ?? all} onValueChange={(v) => set({ status: v === all ? null : v })}>
           <SelectTrigger className="w-44">
-            <SelectValue placeholder={view === "payments" ? "Method" : "Status"} />
+            <SelectValue>{status ? humanize(status) : view === "payments" ? "All methods" : "All statuses"}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={all}>{view === "payments" ? "All methods" : "All statuses"}</SelectItem>
@@ -47,7 +49,7 @@ export function ReportFilters({ view, plans }: { view: ReportView; plans: { id: 
         </Select>
         <Select value={sp.get("plan") ?? all} onValueChange={(v) => set({ plan: v === all ? null : v })}>
           <SelectTrigger className="w-44">
-            <SelectValue placeholder="Plan" />
+            <SelectValue>{plans.find((p) => p.id === plan)?.name ?? "All plans"}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={all}>All plans</SelectItem>

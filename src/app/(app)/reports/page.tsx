@@ -1,3 +1,4 @@
+import { BarChart3 } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 import { PAGE_SIZE, pageParams } from "@/lib/action";
@@ -9,6 +10,7 @@ import {
   parseFilters,
   paymentInclude,
   paymentWhere,
+  reportChart,
   reportSummary,
   subscriptionInclude,
   subscriptionWhere,
@@ -16,12 +18,26 @@ import {
 import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
 import { Pagination } from "@/components/shared/list-controls";
-import { StatCard } from "@/components/shared/stat-card";
+import { MetricStrip } from "@/components/shared/metric-strip";
+import { ChartCard } from "@/components/shared/chart-card";
+import { AreaTrend, BarTrend } from "@/components/shared/charts";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Stagger } from "@/components/motion";
 import { ReportFilters } from "@/components/insights/report-filters";
 
 export const metadata = { title: "Reports" };
+
+const CHART = {
+  subscriptions: { title: "New subscriptions by month", bars: [] },
+  invoices: {
+    title: "Invoiced vs paid by month",
+    bars: [
+      { key: "a", label: "Invoiced" },
+      { key: "b", label: "Paid" },
+    ],
+  },
+  payments: { title: "Payments collected by month", bars: [{ key: "a", label: "Collected" }] },
+};
 
 export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   await requireRole("ADMIN", "STAFF");
@@ -29,9 +45,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
   const f = parseFilters(sp);
   const { page, skip, take } = pageParams(sp);
 
-  const [plans, summary] = await Promise.all([
+  const [plans, summary, chart] = await Promise.all([
     db.plan.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
     reportSummary(f),
+    reportChart(f.view),
   ]);
 
   let table: React.ReactNode;
@@ -104,14 +121,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Reports" description="Filter, summarise and export subscriptions, invoices and payments." />
+      <PageHeader eyebrow="Insights" icon={BarChart3} title="Reports" description="Filter, summarise and export subscriptions, invoices and payments." />
       <div>
         <ReportFilters view={f.view} plans={plans} />
-        <Stagger className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {summary.map((s) => (
-            <StatCard key={s.label} label={s.label} value={s.value} />
-          ))}
-        </Stagger>
+        <MetricStrip items={summary} className="mb-4" />
+        <ChartCard title={CHART[f.view].title} description="Last 12 months, all records" className="mb-6">
+          {f.view === "subscriptions" ? (
+            <AreaTrend data={chart} xKey="label" yKey="a" label="New subscriptions" />
+          ) : (
+            <BarTrend data={chart} xKey="label" format="money" bars={CHART[f.view].bars} />
+          )}
+        </ChartCard>
         <Stagger>{table}</Stagger>
         <Pagination page={page} pageSize={PAGE_SIZE} total={total} />
       </div>

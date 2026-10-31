@@ -3,9 +3,12 @@ import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 import { formatDate, formatMoney, toNum } from "@/lib/format";
 import { displayStatus, outstanding } from "@/lib/invoice-status";
-import { PageHeader, Section } from "@/components/shared/page-header";
+
 import { DataTable } from "@/components/shared/data-table";
-import { StatCard } from "@/components/shared/stat-card";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { AvatarName } from "@/components/shared/avatar-name";
+import { MetricStrip } from "@/components/shared/metric-strip";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { EditCustomerForm } from "@/components/insights/customer-forms";
 
@@ -33,14 +36,27 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const paid = toNum(totals._sum.amountPaid);
   const due = Math.max(0, toNum(totals._sum.total) - paid);
 
+  const activeSubs = subs.filter((x) => x.status === "ACTIVE").length;
+
   return (
-    <div className="space-y-6">
-      <PageHeader title={customer.name} description={customer.company ?? customer.email} />
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Subscriptions" value={subs.length} />
-        <StatCard label="Total paid" value={formatMoney(paid)} />
-        <StatCard label="Outstanding" value={formatMoney(due)} tone={due > 0 ? "danger" : "default"} />
-      </div>
+    <div className="space-y-8">
+      <section className="card-surface flex flex-col gap-6 p-6 sm:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <AvatarName name={customer.name} sub={[customer.company, customer.email, customer.city].filter(Boolean).join(" · ")} size="lg" />
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/customers">All customers</Link>
+          </Button>
+        </div>
+        <MetricStrip
+          className="mb-0 shadow-none"
+          items={[
+            { label: "Lifetime value", value: formatMoney(paid), hint: "total paid" },
+            { label: "Outstanding", value: formatMoney(due) },
+            { label: "Active subscriptions", value: activeSubs },
+            { label: "Customer since", value: formatDate(customer.createdAt) },
+          ]}
+        />
+      </section>
       <EditCustomerForm
         id={id}
         initial={{
@@ -53,7 +69,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           address: customer.address ?? "",
         }}
       />
-      <Section title="Subscriptions">
+      <div>
+<h2 className="mb-3 text-[15px] font-semibold">Subscriptions</h2>
         <DataTable
           rows={subs}
           rowHref={(r) => `/subscriptions/${r.id}`}
@@ -65,8 +82,9 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             { key: "e", header: "Expiry", cell: (r) => formatDate(r.expiryDate) },
           ]}
         />
-      </Section>
-      <Section title="Invoices">
+      </div>
+      <div>
+<h2 className="mb-3 text-[15px] font-semibold">Invoices</h2>
         <DataTable
           rows={invoices}
           rowHref={(r) => `/invoices/${r.id}`}
@@ -78,7 +96,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             { key: "o", header: "Outstanding", align: "right", cell: (r) => formatMoney(outstanding(r)) },
           ]}
         />
-      </Section>
+      </div>
     </div>
   );
 }

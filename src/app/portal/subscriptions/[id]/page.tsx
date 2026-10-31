@@ -45,7 +45,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           ]}
         />
       </Section>
-      <Section title="Items">
+      <div>
+<h2 className="mb-3 text-[15px] font-semibold">Items</h2>
         <DataTable
           rows={sub.lines}
           columns={[
@@ -78,7 +79,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             <dd>{formatMoney(subtotal + tax)}</dd>
           </div>
         </dl>
-      </Section>
+      </div>
     </div>
   );
 }

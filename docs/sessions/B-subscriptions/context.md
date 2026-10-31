@@ -45,3 +45,10 @@ Sales/staff create subscriptions (from scratch or a quotation template), move th
 - Verified in browser: template "Enterprise CRM bundle" → SUB/2026/00010 (Odoo +560 variant, ₹68,145 total), Draft→Quotation→Confirmed→Active, Pause hidden for Business Yearly, Renew 2027→2028, Close expired (0 eligible).
 - Not browser-tested: pause/resume on a pausable plan, 5k-row timing (bulk seed not run). Typecheck + lint clean for B files (C's `invoices/new` had type errors at last check).
 - Note: added a `dev-b` entry to `.claude/launch.json` (untracked tool config).
+
+### Redesign (v2 premium UI)
+- [x] List: eyebrow + icon header, MetricStrip (active, MRR = same definition as dashboard, paused, closing in 30 days), status tabs with counts, number + AvatarName, plan chip. Metrics in `src/lib/subscriptions/list-metrics.ts` (groupBy + one raw SQL sum).
+- [x] Detail: hero card, shared Stepper (Paused as side chip), 2/3 + 1/3 grid, billing summary card, shared Timeline (`components/subscriptions/activity.ts`). Removed old `status-stepper.tsx`.
+- [x] Form: card sections with helper text, sticky summary card (totals + readiness checks), sticky bottom action bar.
+- Tested as staff at 1440×900 + 375×812 (no horizontal page scroll): template → SUB/2026/05010 → Quotation → Confirmed → Active (no Pause on yearly) → Renew (2027→2028) → Close (actions gone, next invoice cleared, timeline shows Closed); SUB/2026/00001 Pause → Activate (next invoice kept).
+- Fixed in passing: Radix `SelectValue` rendered blank on first paint for preset values → labels passed explicitly.

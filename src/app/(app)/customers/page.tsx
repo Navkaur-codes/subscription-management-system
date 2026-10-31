@@ -1,15 +1,17 @@
-import { Plus } from "lucide-react";
+import { Plus, Users } from "lucide-react";
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 import { PAGE_SIZE, pageParams } from "@/lib/action";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, toNum } from "@/lib/format";
 import { customerStats } from "@/lib/insights/customers";
 import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
 import { Pagination, SearchInput, Toolbar } from "@/components/shared/list-controls";
 import { Button } from "@/components/ui/button";
+import { AvatarName } from "@/components/shared/avatar-name";
+import { MetricStrip } from "@/components/shared/metric-strip";
 import { Stagger } from "@/components/motion";
 
 export const metadata = { title: "Customers" };
@@ -29,15 +31,19 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
         ],
       }
     : {};
-  const [rows, total] = await Promise.all([
+  const [rows, total, withActive, owed] = await Promise.all([
     db.customer.findMany({ where, orderBy: { name: "asc" }, skip, take }),
     db.customer.count({ where }),
+    db.customer.count({ where: { subscriptions: { some: { status: "ACTIVE" } } } }),
+    db.invoice.aggregate({ where: { status: "CONFIRMED" }, _sum: { total: true, amountPaid: true } }),
   ]);
   const { active, due } = await customerStats(rows.map((r) => r.id));
 
   return (
     <>
       <PageHeader
+        eyebrow="Sales"
+        icon={Users}
         title="Customers"
         description="People and companies you bill."
         actions={
@@ -48,6 +54,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
           </Button>
         }
       />
+      <MetricStrip
+        items={[
+          { label: "Customers", value: total.toLocaleString("en-IN"), hint: q ? "matching search" : "all time" },
+          { label: "With active plan", value: withActive.toLocaleString("en-IN") },
+          { label: "Total outstanding", value: formatMoney(Math.max(0, toNum(owed._sum.total) - toNum(owed._sum.amountPaid))) },
+        ]}
+      />
       <Toolbar>
         <SearchInput placeholder="Search name, email, company, city…" />
       </Toolbar>
@@ -56,9 +69,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
           rows={rows}
           rowHref={(r) => `/customers/${r.id}`}
           columns={[
-            { key: "name", header: "Name", cell: (r) => <span className="font-medium">{r.name}</span> },
+            { key: "name", header: "Customer", cell: (r) => <AvatarName name={r.name} sub={r.email} /> },
             { key: "company", header: "Company", cell: (r) => r.company ?? "—" },
-            { key: "email", header: "Email", cell: (r) => r.email },
             { key: "city", header: "City", cell: (r) => r.city ?? "—" },
             { key: "active", header: "Active subs", align: "right", cell: (r) => active.get(r.id) ?? 0 },
             { key: "due", header: "Outstanding", align: "right", cell: (r) => formatMoney(due.get(r.id) ?? 0) },

@@ -1,11 +1,11 @@
 import Link from "next/link";
+import { CalendarCheck, CalendarClock, Wallet } from "lucide-react";
 import { db } from "@/lib/db";
 import { formatDate, formatMoney, toNum } from "@/lib/format";
 import { outstanding } from "@/lib/invoice-status";
 import { portalCustomer } from "@/lib/insights/portal";
-import { PageHeader, Section } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
-import { StatCard } from "@/components/shared/stat-card";
+import { KpiCard } from "@/components/shared/kpi-card";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Stagger } from "@/components/motion";
 
@@ -32,14 +32,22 @@ export default async function Page() {
   const amountDue = Math.max(0, toNum(due._sum.total) - toNum(due._sum.amountPaid));
 
   return (
-    <div className="space-y-6">
-      <PageHeader title={`Hello, ${name.split(" ")[0]}`} description="Your subscriptions and invoices." />
-      <Stagger className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Active subscriptions" value={activeCount} />
-        <StatCard label="Next invoice date" value={formatDate(next?.nextInvoiceDate)} />
-        <StatCard label="Amount due" value={formatMoney(amountDue)} tone={amountDue > 0 ? "danger" : "default"} />
+    <div className="space-y-8">
+      <section className="bg-brand-gradient bg-grid rounded-2xl p-6 text-white shadow-card sm:p-8">
+        <p className="text-xs font-medium tracking-wider text-white/70 uppercase">Customer portal</p>
+        <h1 className="mt-1.5 text-2xl font-semibold tracking-tight sm:text-3xl">Hello, {name.split(" ")[0]}</h1>
+        <p className="mt-1.5 text-sm text-white/80">Manage your subscriptions and keep track of your invoices.</p>
+      </section>
+      <Stagger className="grid gap-6 sm:grid-cols-3">
+        <KpiCard label="Active subscriptions" icon={CalendarCheck} value={activeCount} />
+        <KpiCard label="Next invoice date" icon={CalendarClock} tone="info" value={formatDate(next?.nextInvoiceDate)} />
+        <KpiCard label="Amount due" icon={Wallet} tone={amountDue > 0 ? "danger" : "success"} value={formatMoney(amountDue)} />
       </Stagger>
-      <Section title="Current subscriptions" actions={<Link href="/portal/subscriptions" className="text-xs text-brand">View all</Link>}>
+      <div>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold">Current subscriptions</h2>
+          <Link href="/portal/subscriptions" className="text-xs font-medium text-brand">View all</Link>
+        </div>
         <DataTable
           rows={subs}
           rowHref={(r) => `/portal/subscriptions/${r.id}`}
@@ -50,8 +58,12 @@ export default async function Page() {
             { key: "x", header: "Next invoice", cell: (r) => formatDate(r.nextInvoiceDate) },
           ]}
         />
-      </Section>
-      <Section title="Unpaid invoices" actions={<Link href="/portal/invoices" className="text-xs text-brand">View all</Link>}>
+      </div>
+      <div>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold">Unpaid invoices</h2>
+          <Link href="/portal/invoices" className="text-xs font-medium text-brand">View all</Link>
+        </div>
         <DataTable
           rows={unpaid}
           rowHref={(r) => `/portal/invoices/${r.id}`}
@@ -61,7 +73,7 @@ export default async function Page() {
             { key: "o", header: "Amount due", align: "right", cell: (r) => formatMoney(outstanding(r)) },
           ]}
         />
-      </Section>
+      </div>
     </div>
   );
 }

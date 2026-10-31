@@ -22,3 +22,14 @@ When the whole acceptance checklist is done: npm run typecheck && npm run lint, 
 
 ## Follow-up prompts
 (appended by Main as they are sent)
+
+### 2. Premium UI redesign (from Main)
+```
+Redesign the subscription pages to the new premium UI spec (docs/DESIGN.md + CLAUDE.md "Design system"), then test them in the browser.
+Session E builds shared components (AvatarName, MetricStrip, Stepper, Timeline, KpiCard, restyled DataTable/StatusBadge) — layout first, adopt them as they appear in src/components/shared/, never write your own copies.
+1. List: PageHeader with eyebrow + icon, MetricStrip (active count, MRR of current filter, paused, closing soon), status FilterTabs with counts, first column = number + AvatarName customer, plan as subtle chip.
+2. Detail: hero card (number, StatusBadge, customer AvatarName, plan, big recurring total, primary lifecycle actions); Stepper Draft→Quotation→Confirmed→Active→Closed (Paused as side state); 2/3 + 1/3 layout — lines and invoices left; right = billing summary card + Timeline (created, start, invoices issued, closedAt).
+3. Form (new/edit): card sections with helper text, live totals panel sticky on the right, sticky bottom action bar.
+Test on dev:b (3002) as staff — create from a template, walk the lifecycle incl. Close and Renew, at 1440×900 and 375×812. DB was re-seeded — sign out/in if stale. Timebox 75 min. No git writes; Suggested commit after each item; typecheck + lint clean.
+Reply "SESSION B REDESIGN DONE" with what you tested.
+```

@@ -1,8 +1,8 @@
 "use client";
 import { CountUp } from "@/components/motion";
-import { formatMoney } from "@/lib/format";
+import { shortMoney } from "@/lib/insights/money";
 
 /** Animated ₹ amount for KPI cards. */
 export function MoneyCount({ value }: { value: number }) {
-  return <CountUp value={value} format={formatMoney} />;
+  return <CountUp value={value} format={shortMoney} />;
 }

@@ -1,7 +1,8 @@
 import type { Prisma } from "@prisma/client";
-import { endOfDay } from "date-fns";
+import { endOfDay, format, startOfMonth, subMonths } from "date-fns";
 import { db } from "@/lib/db";
-import { formatDate, formatMoney, toNum } from "@/lib/format";
+import { formatDate, toNum } from "@/lib/format";
+import { shortMoney } from "./money";
 import { displayStatus, outstanding } from "@/lib/invoice-status";
 
 import { STATUS_OPTIONS, type ReportView } from "./report-options";
@@ -97,15 +98,15 @@ export async function reportSummary(f: ReportFilters): Promise<{ label: string; 
     ]);
     return [
       { label: "Invoices", value: all._count._all.toLocaleString("en-IN") },
-      { label: "Invoiced", value: formatMoney(all._sum.total) },
-      { label: "Paid", value: formatMoney(all._sum.amountPaid) },
-      { label: "Outstanding", value: formatMoney(Math.max(0, toNum(open._sum.total) - toNum(open._sum.amountPaid))) },
+      { label: "Invoiced", value: shortMoney(toNum(all._sum.total)) },
+      { label: "Paid", value: shortMoney(toNum(all._sum.amountPaid)) },
+      { label: "Outstanding", value: shortMoney(Math.max(0, toNum(open._sum.total) - toNum(open._sum.amountPaid))) },
     ];
   }
   const agg = await db.payment.aggregate({ where: paymentWhere(f), _count: { _all: true }, _sum: { amount: true } });
   return [
     { label: "Payments", value: agg._count._all.toLocaleString("en-IN") },
-    { label: "Collected", value: formatMoney(agg._sum.amount) },
+    { label: "Collected", value: shortMoney(toNum(agg._sum.amount)) },
   ];
 }
 
@@ -147,4 +148,29 @@ export async function reportCsv(f: ReportFilters): Promise<string> {
       rows.push([formatDate(p.paymentDate), p.invoice.number, p.invoice.customer.name, p.method, toNum(p.amount), p.reference ?? ""]);
   }
   return [header, ...rows].map((r) => r.map(csvCell).join(",")).join("\r\n");
+}
+
+type ChartRow = { month: Date; a: number; b: number };
+
+/** Month-by-month series for the chart on each tab (last 12 months, unfiltered). */
+export async function reportChart(view: ReportView) {
+  const from = startOfMonth(subMonths(new Date(), 11));
+  const rows =
+    view === "subscriptions"
+      ? await db.$queryRaw<ChartRow[]>`
+          SELECT date_trunc('month', "startDate") AS month, COUNT(*)::float8 AS a, 0::float8 AS b
+          FROM "Subscription" WHERE "startDate" >= ${from} GROUP BY 1`
+      : view === "invoices"
+        ? await db.$queryRaw<ChartRow[]>`
+            SELECT date_trunc('month', "invoiceDate") AS month, COALESCE(SUM(total), 0)::float8 AS a, COALESCE(SUM("amountPaid"), 0)::float8 AS b
+            FROM "Invoice" WHERE status IN ('CONFIRMED','PAID') AND "invoiceDate" >= ${from} GROUP BY 1`
+        : await db.$queryRaw<ChartRow[]>`
+            SELECT date_trunc('month', "paymentDate") AS month, COALESCE(SUM(amount), 0)::float8 AS a, COUNT(*)::float8 AS b
+            FROM "Payment" WHERE "paymentDate" >= ${from} GROUP BY 1`;
+  const by = new Map(rows.map((r) => [format(new Date(r.month), "yyyy-MM"), r]));
+  return Array.from({ length: 12 }, (_, i) => {
+    const d = subMonths(new Date(), 11 - i);
+    const r = by.get(format(d, "yyyy-MM"));
+    return { label: format(d, "MMM"), a: r?.a ?? 0, b: r?.b ?? 0 };
+  });
 }

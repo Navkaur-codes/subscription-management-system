@@ -38,3 +38,5 @@ The finance lead sees active subscriptions, revenue, payments and overdue invoic
 - [x] 4 Reports (3 views, filters, summary, pagination, CSV export)
 - [x] 5 Portal (overview, subscriptions + pause/resume/cancel, invoices)
 - typecheck clean for D files (only C's `invoices/new/page.tsx` errors remain); lint clean for D. Not browser-tested (pane denied localhost).
+
+- Redesign v2 done: dashboard (KpiCards+charts), reports (MetricStrip+chart), customers/users/portal restyled. Tested in browser as staff and customer.

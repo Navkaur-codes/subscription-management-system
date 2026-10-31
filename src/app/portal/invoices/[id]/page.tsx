@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { formatDate, formatMoney, humanize } from "@/lib/format";
 import { portalCustomer } from "@/lib/insights/portal";
 import { InvoiceDocument, invoiceDocumentInclude } from "@/components/shared/invoice-document";
-import { PageHeader, Section } from "@/components/shared/page-header";
+import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
 import { PrintButton } from "@/components/shared/print-button";
 
@@ -23,7 +23,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
       <PageHeader title={invoice.number} actions={<PrintButton />} />
       <InvoiceDocument invoice={invoice} />
       <div className="no-print">
-        <Section title="Payment history">
+        <div>
+<h2 className="mb-3 text-[15px] font-semibold">Payment history</h2>
           <DataTable
             rows={invoice.payments}
             columns={[
@@ -33,7 +34,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               { key: "a", header: "Amount", align: "right", cell: (p) => formatMoney(p.amount) },
             ]}
           />
-        </Section>
+        </div>
       </div>
     </div>
   );
