@@ -92,3 +92,5 @@ Phase 2 = integration in place (no merges): run full typecheck/build, fix seams,
 - v3 integrated: tsc + eslint + production build green; no v2 violet left (`grep` clean except the utility definitions, which now resolve to ember).
 - Main fixes during review: fonts never applied (Tailwind `--font-serif` clash + @theme-inline vars not emitted; reported by B) → `--font-instrument` + direct next/font vars, verified Instrument Serif / Geist Mono in browser; `?next=` kept query string; login grid column blew up to 4,641px from the w-max ticker → `minmax(0,…)` + `min-w-0`; inner-orbit dots sat at SVG origin before their delayed start → seek offsets; hydration mismatch from float tick coords → rounded.
 - Verified in browser (prod build): login light + dark (orbit, stations ping, MRR scramble, serif headline reveal, ticker, demo row); one-click Admin login → v3 dashboard.
+
+- Email: Gmail SMTP configured in local .env (user-confirmed real delivery). Root cause of earlier non-delivery: servers started before .env edit kept the cached Ethereal transport — restart after any SMTP change.

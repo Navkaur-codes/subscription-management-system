@@ -19,6 +19,16 @@ The sign-in page has one-click demo buttons — **Admin**, **Staff**, **Customer
 
 The seeded database holds **5,000 subscriptions, ~10,000 invoices and ~8,000 payments**, so every list, report and chart has realistic data.
 
+### Five-minute walkthrough
+
+1. **Admin → Catalog:** open *Products* (Brightloop CRM has the *Brand: Odoo +₹560* variant), *Plans* (pricing cards with rules), *Discounts* (*Bulk seats 10%* for 10+ seats).
+2. **Staff → Quotation templates → "Enterprise CRM bundle" → Use template:** pick a customer, create the subscription, then walk it *Send quotation → Confirm → Activate*.
+3. **Create invoice** on the active subscription — the 10% bulk discount is applied automatically and tax is charged on the discounted amount. *Confirm* it, then *Send* (email) or *Print*.
+4. **Invoices → Generate due invoices:** preview how many subscriptions are due and the total, confirm, then run it again — it creates nothing, because each period is billed once.
+5. **Register payment** on an invoice: a partial amount shows *Partial*, the rest makes it *Paid*; see it land on *Payments* and the *Dashboard*.
+6. **Customer → Portal:** only Kiran's own subscriptions and invoices; pause / resume a plan that allows it; print an invoice.
+7. **Forgot password** from the sign-in page → reset link by email → set a new password.
+
 ---
 
 ## Problem statement → what we built
@@ -30,7 +40,7 @@ The seeded database holds **5,000 subscriptions, ~10,000 invoices and ~8,000 pay
 | **Turning a quote into a subscription** | **Quotation templates** (plan + product lines + validity days) prefill a new subscription. Each subscription has its own number (`SUB/2026/00001`), customer, plan, start/expiry dates, payment terms and lines (product, qty, unit price, tax, amount). Lifecycle **Draft → Quotation → Confirmed → Active → Closed** (+ Paused / Renew per plan rules), shown as a stepper on every subscription. |
 | **Billing day** | **Generate due invoices** bills every active subscription that is due, with a preview of how many invoices and the total before you confirm. Each invoice is built from its subscription — customer, lines, taxes, discounts, totals. **Nothing is billed twice**: a database unique key on *(subscription, period)*. Invoices move **Draft → Confirmed → Paid** and can be confirmed, cancelled, sent by email or printed. |
 | **A customer asks for a better price** | Admin-only **discount rules**: fixed or %, minimum purchase / quantity, start & end dates, usage limit, scope = specific products or whole subscription. A valid discount is **applied to the next invoice automatically** and stops when it expires or runs out (usage is counted atomically). |
-| **The money comes in** | Record payments against an invoice with method (Cash / Bank transfer / Card / UPI / Cheque), amount, date and note. Partial payments supported; overpayment blocked; the invoice turns **Paid** automatically. Paid / Outstanding / **Overdue** views. |
+| **The money comes in** | Open an invoice → **Register payment** with method (Cash / Bank transfer / Card / UPI / Cheque), amount, date and note. Partial payments supported; overpayment blocked; the invoice turns **Paid** automatically. Paid / Outstanding / **Overdue** views, and a *Payments* page with collections KPIs, split by method and full history. |
 | **The finance lead, end of month** | **Dashboard**: active subscriptions, recurring revenue (MRR) with 12-month trend, collected this month, outstanding, overdue — each with month-on-month change. **Reports** for subscriptions, invoices and payments with filters, summary totals and **CSV export**. Every page stays **well under 2 seconds** on 5,000+ subscriptions (measured 150–710 ms on a production build). |
 | **Customers self-serve** | **Customer portal**: own subscriptions and invoices, print invoices, payment history, and pause / resume / cancel where the plan allows. Every query is scoped to the signed-in customer — another customer's record returns 404. |
 
@@ -127,7 +137,13 @@ npm run dev                 # http://localhost:3000
 Emails are sent for password reset, invoice delivery and quotations.
 
 - **No SMTP configured (default):** mail goes to a free [Ethereal](https://ethereal.email) test inbox and the app shows an *"Open test inbox preview"* link — everything works with zero setup.
-- **SMTP configured:** set the `SMTP_*` variables (e.g. Gmail with an App Password: `smtp.gmail.com`, port `587`) and restart — real delivery, no code change.
+- **SMTP configured:** set the `SMTP_*` variables and restart — real delivery to the user's inbox, no code change. Verified with Gmail:
+  1. Turn on 2-Step Verification for a personal Google account, then create an App Password at <https://myaccount.google.com/apppasswords>.
+  2. In `.env`: `SMTP_HOST="smtp.gmail.com"`, `SMTP_PORT="587"`, `SMTP_USER` = your Gmail, `SMTP_PASS` = the 16-character app password (no spaces), `MAIL_FROM="Brightloop Billing <your Gmail>"`.
+  3. **Restart the server** — the mail connection is created once at start-up.
+  4. Sign up with a real address, then use *Forgot password* — the reset link arrives in that inbox (check Spam the first time).
+
+  Seeded customers use placeholder addresses (`*.test`), so send test mail only to an account you created with a real email.
 
 ---
 
