@@ -32,4 +32,9 @@ The finance lead sees active subscriptions, revenue, payments and overdue invoic
 (none yet)
 
 ## Status
-- [ ] Not started
+- [x] 1 Customers (list/new/[id], duplicate email rejected)
+- [x] 2 Team members (/users, ADMIN only, activate/deactivate)
+- [x] 3 Dashboard (metrics.ts; raw SQL checked against Neon)
+- [x] 4 Reports (3 views, filters, summary, pagination, CSV export)
+- [x] 5 Portal (overview, subscriptions + pause/resume/cancel, invoices)
+- typecheck clean for D files (only C's `invoices/new/page.tsx` errors remain); lint clean for D. Not browser-tested (pane denied localhost).
