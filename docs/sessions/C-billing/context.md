@@ -22,16 +22,19 @@ No invoice is typed by hand: invoices are generated from subscriptions (customer
 4. **Status guards**: use `INVOICE_TRANSITIONS`; all actions `requireRole("ADMIN","STAFF")`.
 
 ## Acceptance checklist
-- [ ] From an ACTIVE subscription, `/invoices/new?subscriptionId=` creates a correct invoice (lines, taxes, discount, totals) and redirects
-- [ ] "Generate due invoices" twice → second run creates 0 (no double billing); nextInvoiceDate advances
-- [ ] Discount "Bulk seats 10%" (min qty 10) appears automatically on invoice for a 12-seat sub; usedCount increments; expired discount never applies
-- [ ] Confirm / Cancel / Send (Ethereal preview) / Print work; illegal transitions blocked
-- [ ] Partial payment → PARTIAL badge; full → PAID; overpay rejected
-- [ ] Outstanding / Overdue filters correct; lists fast on 20k invoices
-- [ ] typecheck passes; design rules followed
+- [x] From an ACTIVE subscription, `/invoices/new?subscriptionId=` creates a correct invoice (lines, taxes, discount, totals) and redirects
+- [x] "Generate due invoices" twice → second run creates 0 (no double billing); nextInvoiceDate advances
+- [x] Discount "Bulk seats 10%" (min qty 10) appears automatically on invoice for a 12-seat sub; usedCount increments; expired discount never applies
+- [x] Confirm / Cancel / Send (Ethereal preview) / Print work; illegal transitions blocked
+- [x] Partial payment → PARTIAL badge; full → PAID; overpay rejected
+- [x] Outstanding / Overdue filters correct; lists fast on 20k invoices
+- [x] typecheck passes; design rules followed
 
 ## Requests to Main
-(none yet)
+- `npm run lint` scans `.next-b/.next-c/.next-d` build dirs (1k+ errors from generated files). Add them to eslint ignores (eslint.config.mjs). `npx eslint src` is clean.
 
 ## Status
-- [ ] Not started
+- [x] Generator (`src/lib/billing/generate.ts`): per-sub + bulk (batched 200, catch-up ≤12), P2002/already-billed safe, expiry-aware. Discount = sub's own, else best valid active discount; usedCount++.
+- [x] Routes: `/invoices/new?subscriptionId=` (redirects / explains), `/invoices` (tabs, search, date range, summary, Generate due), `/invoices/[id]` (Confirm/Cancel/Send/Print/Register payment)
+- [x] Payments: `recordPayment` (≤ outstanding, auto-PAID) + `/payments` (method tabs, search, date range, total)
+- [x] Verified in browser: 12-seat sub → 10% bulk discount, partial → PARTIAL, full → PAID, Ethereal preview, Generate due twice → 1 then 0
