@@ -7,8 +7,11 @@ import { toNum } from "@/lib/format";
 import { addDays, endOfDay } from "date-fns";
 
 export type GenerateResult =
-  | { status: "created"; invoiceId: string; number: string }
-  | { status: "skipped"; reason: string; invoiceId?: string };
+  | { status: "created"; invoiceId: string; number: string; nextInvoiceDate: Date }
+  | { status: "skipped"; reason: string; invoiceId?: string; nextInvoiceDate?: Date };
+
+/** Thrown inside the transaction when another run used up the discount first. */
+class DiscountExhausted extends Error {}
 
 const discountInclude = { products: true } satisfies Prisma.DiscountInclude;
 type DiscountRow = Prisma.DiscountGetPayload<{ include: typeof discountInclude }>;
@@ -59,7 +62,7 @@ export async function generateInvoiceForSubscription(
   });
   if (existing) {
     await db.subscription.update({ where: { id: sub.id }, data: { nextInvoiceDate: periodEnd } });
-    return { status: "skipped", reason: "This period is already billed", invoiceId: existing.id };
+    return { status: "skipped", reason: "This period is already billed", invoiceId: existing.id, nextInvoiceDate: periodEnd };
   }
 
   const inputs: PriceLineInput[] = sub.lines.map((l) => ({
@@ -72,9 +75,12 @@ export async function generateInvoiceForSubscription(
   const { priced, discountId } = bestPricing(inputs, sub.discount, all, periodStart);
 
   const invoiceDate = today();
+  const discountRow = discountId ? (all.find((d) => d.id === discountId) ?? sub.discount) : null;
+  // Numbered outside the transaction so the counter row isn't locked for the whole insert —
+  // lets bulk runs bill subscriptions in parallel. A failed insert can leave a gap in the sequence.
+  const number = await nextNumber("INV");
   try {
     const inv = await db.$transaction(async (tx) => {
-      const number = await nextNumber("INV", tx);
       const created = await tx.invoice.create({
         data: {
           number,
@@ -106,15 +112,29 @@ export async function generateInvoiceForSubscription(
         },
         select: { id: true, number: true },
       });
-      if (discountId) await tx.discount.update({ where: { id: discountId }, data: { usedCount: { increment: 1 } } });
+      if (discountRow) {
+        // Increment only while under the limit, so parallel runs can't overshoot it.
+        const limit = discountRow.usageLimit;
+        const r = await tx.discount.updateMany({
+          where: { id: discountRow.id, ...(limit !== null ? { usedCount: { lt: limit } } : {}) },
+          data: { usedCount: { increment: 1 } },
+        });
+        if (r.count === 0) throw new DiscountExhausted();
+      }
       await tx.subscription.update({ where: { id: sub.id }, data: { nextInvoiceDate: periodEnd } });
       return created;
     });
     // keep the caller's cached discounts in sync so usage limits hold during bulk runs
     const used = discountId ? activeDiscounts?.find((d) => d.id === discountId) : undefined;
     if (used) used.usedCount++;
-    return { status: "created", invoiceId: inv.id, number: inv.number };
+    return { status: "created", invoiceId: inv.id, number: inv.number, nextInvoiceDate: periodEnd };
   } catch (e) {
+    if (e instanceof DiscountExhausted && discountRow) {
+      // Someone else used the last redemption: mark it exhausted and bill without it.
+      discountRow.usedCount = discountRow.usageLimit ?? discountRow.usedCount;
+      const fallback = all.filter((d) => d.id !== discountRow.id);
+      return generateInvoiceForSubscription(subscriptionId, fallback);
+    }
     if (isUniqueViolation(e)) return { status: "skipped", reason: "This period is already billed" };
     throw e;
   }
@@ -122,13 +142,19 @@ export async function generateInvoiceForSubscription(
 
 const BATCH = 200;
 const MAX_CATCH_UP = 12;
+/** Subscriptions billed in parallel; each one bills in its own transaction. */
+const CONCURRENCY = 8;
+/** Stop before the request gets slow; the user just runs it again for the rest. */
+const TIME_BUDGET_MS = 20_000;
 
 /** Bill every ACTIVE subscription whose next invoice date is due (with catch-up, max 12 periods each). */
 export async function generateDueInvoices() {
   const cutoff = endOfDay(new Date());
+  const deadline = Date.now() + TIME_BUDGET_MS;
   let created = 0;
   let skipped = 0;
   let total = 0;
+  let timedOut = false;
   let cursor: string | undefined;
   const discounts = await db.discount.findMany({ where: { isActive: true }, include: discountInclude });
 
@@ -143,7 +169,8 @@ export async function generateDueInvoices() {
     if (subs.length === 0) break;
     cursor = subs[subs.length - 1].id;
 
-    for (const { id } of subs) {
+    // Catch up one subscription period by period, using the next date each invoice returns.
+    const billOne = async (id: string) => {
       total++;
       for (let i = 0; i < MAX_CATCH_UP; i++) {
         const res = await generateInvoiceForSubscription(id, discounts);
@@ -152,11 +179,26 @@ export async function generateDueInvoices() {
           if (i === 0) skipped++;
           if (!res.invoiceId) break;
         }
-        const next = await db.subscription.findUnique({ where: { id }, select: { nextInvoiceDate: true } });
-        if (!next?.nextInvoiceDate || next.nextInvoiceDate > cutoff) break;
+        if (!res.nextInvoiceDate || res.nextInvoiceDate > cutoff) break;
       }
-    }
-    if (subs.length < BATCH) break;
+    };
+
+    // Small worker pool over this batch; workers stop picking up new work past the deadline.
+    let idx = 0;
+    const worker = async () => {
+      while (idx < subs.length) {
+        if (Date.now() > deadline) {
+          timedOut = true;
+          return;
+        }
+        await billOne(subs[idx++].id);
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, subs.length) }, worker));
+    if (timedOut || subs.length < BATCH) break;
   }
-  return { created, skipped, total };
+  const remaining = timedOut
+    ? await db.subscription.count({ where: { status: "ACTIVE", nextInvoiceDate: { lte: cutoff } } })
+    : 0;
+  return { created, skipped, total, remaining };
 }

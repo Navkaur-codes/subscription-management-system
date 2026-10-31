@@ -290,6 +290,8 @@ async function main() {
     }));
     await db.customer.createMany({ data: bulkCustomers });
 
+    // Paid 3 days after issue, but never in the future.
+    const paidOn = (issued: Date) => new Date(Math.min(addDays(issued, 3).getTime(), Date.now()));
     const statuses: SubscriptionStatus[] = ["ACTIVE", "ACTIVE", "ACTIVE", "ACTIVE", "PAUSED", "CLOSED", "QUOTATION", "DRAFT", "CONFIRMED"];
     const subs: object[] = [];
     const subLines: object[] = [];
@@ -320,7 +322,7 @@ async function main() {
           id: invId, number: invNo(), subscriptionId: subId, customerId, status: invStatus,
           invoiceDate: next, dueDate: due, periodStart: next, periodEnd: end,
           subtotal: priced.subtotal, taxTotal: priced.taxTotal, total: priced.total,
-          amountPaid: invStatus === "PAID" ? priced.total : 0, paidAt: invStatus === "PAID" ? addDays(next, 3) : null,
+          amountPaid: invStatus === "PAID" ? priced.total : 0, paidAt: invStatus === "PAID" ? paidOn(next) : null,
         });
         invLines.push({
           id: randomUUID(), invoiceId: invId, productId: product.id, description: product.name, quantity: qty,
@@ -328,11 +330,17 @@ async function main() {
         });
         if (invStatus === "PAID")
           pays.push({
-            id: randomUUID(), invoiceId: invId, amount: priced.total, paymentDate: addDays(next, 3),
+            id: randomUUID(), invoiceId: invId, amount: priced.total, paymentDate: paidOn(next),
             method: faker.helpers.arrayElement(["CASH", "BANK_TRANSFER", "CARD", "UPI", "CHEQUE"]),
           });
         next = end;
         n++;
+      }
+      // History is capped at 6 invoices; treat older periods as billed so the account is up to date,
+      // then leave ~3% of active subs due today — a realistic billing day for the demo.
+      if (billed) {
+        while (next <= new Date()) next = addPeriod(next, plan.billingPeriod);
+        if (status === "ACTIVE" && faker.number.float() < 0.03) next = startOfDay(new Date());
       }
       subs.push({
         id: subId, number: subNo(), customerId, planId: plan.id, status, startDate: start,

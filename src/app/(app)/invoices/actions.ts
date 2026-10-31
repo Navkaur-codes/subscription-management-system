@@ -23,7 +23,9 @@ export async function generateDueAction(): Promise<ActionResult<{ created: numbe
     const r = await generateDueInvoices();
     refresh();
     revalidatePath("/subscriptions");
-    const msg = r.created === 0 ? "Nothing due — no invoices created" : `${r.created} invoice${r.created === 1 ? "" : "s"} created`;
+    const msg =
+      (r.created === 0 ? "Nothing due — no invoices created" : `${r.created} invoice${r.created === 1 ? "" : "s"} created`) +
+      (r.remaining > 0 ? ` · ${r.remaining} subscriptions still due, run again to continue` : "");
     return ok({ created: r.created }, msg);
   } catch (e) {
     return toFail(e);
