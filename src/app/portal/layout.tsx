@@ -8,13 +8,13 @@ export default async function PortalLayout({ children }: { children: React.React
   return (
     <div className="min-h-svh">
       <header className="no-print sticky top-0 z-30 border-b bg-background/80 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-5xl items-center gap-6 px-4 sm:px-6">
-          <div className="flex items-center gap-2 text-sm font-semibold">
+        <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4 sm:gap-6 sm:px-6">
+          <div className="flex shrink-0 items-center gap-2 text-sm font-semibold">
             <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">B</span>
-            Brightloop
+            <span className="hidden sm:inline">Brightloop</span>
           </div>
           <PortalNav />
-          <div className="ml-auto">
+          <div className="ml-auto shrink-0">
             <UserMenu user={user} />
           </div>
         </div>

@@ -65,3 +65,12 @@ Phase 2 = integration in place (no merges): run full typecheck/build, fix seams,
 - Verified in code: overpayment rejected; double billing blocked by unique (subscriptionId, periodStart) + P2002 skip; portal queries always scoped to the session's customerId.
 - Gotcha: after any re-seed, sign out and back in (old JWT holds old user/customer ids).
 - Not yet clicked through: forgot-password email (Ethereal), "Generate due invoices" twice on bulk data, customer portal pages, CSV export, mobile layout. → Phase 3.
+
+## Phase 3 — remaining flows tested
+- **Billing day at scale (fixed):** old bulk seed left 1,054 subs months behind → "Generate due invoices" would hang (~8k sequential tx, Neon RTT ≈110 ms). Fixes: seed brings bulk subs up to date and leaves ~3% due today (~75); generator bills 8 subs in parallel, numbers invoices outside the tx (rare gap possible on failure), returns next date instead of re-reading, guards discount usage limit with a conditional increment, and stops at 20 s with "N still due, run again". Result: 41 created (+22 correctly skipped as expired) in ~15 s; second run → "Nothing due".
+- CSV export: subscriptions 5,009 rows / invoices 10,000 (cap) / payments 9,652 rows, 1.3–1.9 s, served as attachments.
+- Mail: Ethereal transport sends and returns a preview URL (powers forgot-password + invoice/quotation emails).
+- Portal as customer: overview shows only Kiran's data; staff URLs + CSV export redirect to /portal; another customer's invoice/subscription → 404; pause → resume works.
+- Mobile (375px): portal header overflowed and hid the account menu → fixed (nav scrolls, brand text hidden on small screens). Tables scroll inside their cards.
+- Seed: bulk payments never dated in the future.
+- Known: expired-but-ACTIVE subs stay "due" and are skipped every run (staff can use "Close expired" for autoClose plans). Staff screens on mobile not clicked through (hamburger sheet exists).
