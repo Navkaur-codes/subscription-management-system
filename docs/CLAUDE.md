@@ -74,3 +74,12 @@ Phase 2 = integration in place (no merges): run full typecheck/build, fix seams,
 - Mobile (375px): portal header overflowed and hid the account menu → fixed (nav scrolls, brand text hidden on small screens). Tables scroll inside their cards.
 - Seed: bulk payments never dated in the future.
 - Known: expired-but-ACTIVE subs stay "due" and are skipped every run (staff can use "Close expired" for autoClose plans). Staff screens on mobile not clicked through (hamburger sheet exists).
+
+## Phase 4 — UI redesign v2 (user: "UI is boring, make it competition level")
+- Spec: `docs/DESIGN.md` ("Premium SaaS": dark ink sidebar, violet→indigo gradient, depth, Recharts, ⌘K, dark mode). CLAUDE.md design section now points to it.
+- Main installed `recharts@3`; added `dev:e` (port 3006).
+- New **Session E** (Opus) owns tokens, shared components, shell, auth, portal layout (ownership moved from Main in CLAUDE.md).
+- A/B/C/D got follow-ups to restyle + browser-test their pages (B: also Close/Renew; C: also Cancel/Send + billing preview in the generate dialog; D: dashboard charts).
+- Stretch items folded in: billing preview (C), MRR chart (D). Audit trail + email reminders still parked.
+- Redesign integrated: tsc + eslint + production build green. Visually checked at 1440 (light + dark): login (gradient panel, floating cards), dashboard (hero, KPI sparklines + deltas, MRR area, status donut, invoiced vs collected bars, top plans, overdue/payments tables), subscriptions, invoices, plans (pricing cards), products, portal. Mobile 375: dashboard no horizontal overflow.
+- Seed v3 (Main): growth story — sign-ups skewed recent, churn spread over the year, invoices = latest 6 periods per sub, old invoices ~96% paid. Dashboard now +23% active, +22.6% MRR (was −15%/−14.7% from seed artefacts). 5,000 subs / 10,400 invoices / 8,257 payments.

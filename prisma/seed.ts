@@ -6,7 +6,7 @@ import { PrismaClient, type BillingPeriod, type InvoiceStatus, type Subscription
 import { faker } from "@faker-js/faker/locale/en_IN";
 import bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
-import { addDays, startOfDay, subMonths } from "date-fns";
+import { addDays, startOfDay, subDays, subMonths } from "date-fns";
 import { addPeriod } from "../src/lib/dates";
 import { priceLines } from "../src/lib/pricing";
 
@@ -304,25 +304,34 @@ async function main() {
       const product = faker.helpers.arrayElement(products);
       const qty = faker.number.int({ min: plan.minQuantity, max: 30 });
       const status = faker.helpers.arrayElement(statuses);
-      const start = startOfDay(faker.date.past({ years: 1 }));
+      // Growth story: sign-ups skew toward recent months; churned subs close at a random point after start.
+      const start = startOfDay(subDays(new Date(), Math.floor(365 * faker.number.float() ** 1.8)));
+      const closedAt = status === "CLOSED" ? new Date(start.getTime() + faker.number.float() * (Date.now() - start.getTime())) : null;
+      const billUntil = closedAt ?? new Date();
       const unit = Number(product.salesPrice);
       const priced = priceLines([{ productId: product.id, quantity: qty, unitPrice: unit, taxRate: productTax[product.id] }]);
       const subId = randomUUID();
       const customerId = faker.helpers.arrayElement(bulkCustomers).id;
-      let next = start;
       const billed = status === "ACTIVE" || status === "PAUSED" || status === "CLOSED";
-      let n = 0;
-      while (billed && next <= new Date() && n < 6) {
-        const end = addPeriod(next, plan.billingPeriod);
-        const due = addDays(next, 15);
+      // Invoice history = the most recent 6 periods (older ones count as billed but aren't stored).
+      const periodStarts: Date[] = [];
+      for (let p = start; billed && p <= billUntil && periodStarts.length < 400; p = addPeriod(p, plan.billingPeriod)) periodStarts.push(p);
+      let next = periodStarts.length ? addPeriod(periodStarts[periodStarts.length - 1], plan.billingPeriod) : start;
+      for (const ps of periodStarts.slice(-6)) {
+        const end = addPeriod(ps, plan.billingPeriod);
+        const due = addDays(ps, 15);
         const roll = faker.number.float();
-        const invStatus: InvoiceStatus = roll < 0.75 ? "PAID" : roll < 0.95 ? "CONFIRMED" : "CANCELLED";
+        // Older invoices are almost always settled; recent ones are still being collected.
+        const old = due < subDays(new Date(), 30);
+        const invStatus: InvoiceStatus = old
+          ? roll < 0.96 ? "PAID" : roll < 0.99 ? "CONFIRMED" : "CANCELLED"
+          : roll < 0.7 ? "PAID" : roll < 0.97 ? "CONFIRMED" : "CANCELLED";
         const invId = randomUUID();
         invs.push({
           id: invId, number: invNo(), subscriptionId: subId, customerId, status: invStatus,
-          invoiceDate: next, dueDate: due, periodStart: next, periodEnd: end,
+          invoiceDate: ps, dueDate: due, periodStart: ps, periodEnd: end,
           subtotal: priced.subtotal, taxTotal: priced.taxTotal, total: priced.total,
-          amountPaid: invStatus === "PAID" ? priced.total : 0, paidAt: invStatus === "PAID" ? paidOn(next) : null,
+          amountPaid: invStatus === "PAID" ? priced.total : 0, paidAt: invStatus === "PAID" ? paidOn(ps) : null,
         });
         invLines.push({
           id: randomUUID(), invoiceId: invId, productId: product.id, description: product.name, quantity: qty,
@@ -330,22 +339,16 @@ async function main() {
         });
         if (invStatus === "PAID")
           pays.push({
-            id: randomUUID(), invoiceId: invId, amount: priced.total, paymentDate: paidOn(next),
+            id: randomUUID(), invoiceId: invId, amount: priced.total, paymentDate: paidOn(ps),
             method: faker.helpers.arrayElement(["CASH", "BANK_TRANSFER", "CARD", "UPI", "CHEQUE"]),
           });
-        next = end;
-        n++;
       }
-      // History is capped at 6 invoices; treat older periods as billed so the account is up to date,
-      // then leave ~3% of active subs due today — a realistic billing day for the demo.
-      if (billed) {
-        while (next <= new Date()) next = addPeriod(next, plan.billingPeriod);
-        if (status === "ACTIVE" && faker.number.float() < 0.03) next = startOfDay(new Date());
-      }
+      // Leave ~3% of active subs due today — a realistic billing day for the demo.
+      if (status === "ACTIVE" && faker.number.float() < 0.03) next = startOfDay(new Date());
       subs.push({
         id: subId, number: subNo(), customerId, planId: plan.id, status, startDate: start,
         expiryDate: addPeriod(start, plan.billingPeriod, plan.billingPeriod === "YEARLY" ? 1 : 12),
-        nextInvoiceDate: status === "CLOSED" ? null : next, closedAt: status === "CLOSED" ? new Date() : null,
+        nextInvoiceDate: status === "CLOSED" ? null : next, closedAt,
       });
       subLines.push({
         id: randomUUID(), subscriptionId: subId, productId: product.id, quantity: qty, unitPrice: unit,

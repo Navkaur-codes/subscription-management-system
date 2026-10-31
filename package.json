@@ -17,7 +17,8 @@
     "dev:a": "cross-env NEXT_DIST_DIR=.next-a next dev -p 3001",
     "dev:b": "cross-env NEXT_DIST_DIR=.next-b next dev -p 3002",
     "dev:c": "cross-env NEXT_DIST_DIR=.next-c next dev -p 3003",
-    "dev:d": "cross-env NEXT_DIST_DIR=.next-d next dev -p 3004"
+    "dev:d": "cross-env NEXT_DIST_DIR=.next-d next dev -p 3004",
+    "dev:e": "cross-env NEXT_DIST_DIR=.next-e next dev -p 3006"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -39,6 +40,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.91.0",
+    "recharts": "^3.10.1",
     "shadcn": "^4.23.0",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.7.0",

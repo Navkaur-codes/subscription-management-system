@@ -11,7 +11,7 @@ One platform to run plans, subscriptions, recurring invoices, payments and reven
 Do **not** explore the rest of the repo. Open a shared file only when you need its exact signature.
 
 ## Stack (installed — do not add libraries without asking Main)
-Next.js 15 App Router + TS · React 19 · Tailwind v4 · shadcn/ui (radix) in `src/components/ui` · Prisma 6 + PostgreSQL (Neon) · Zod 3 · react-hook-form · bcryptjs + jose · Nodemailer (Ethereal fallback) · GSAP + @gsap/react · sonner toasts · date-fns · lucide-react.
+Next.js 15 App Router + TS · React 19 · Tailwind v4 · shadcn/ui (radix) in `src/components/ui` · Prisma 6 + PostgreSQL (Neon) · Zod 3 · react-hook-form · bcryptjs + jose · Nodemailer (Ethereal fallback) · GSAP + @gsap/react · sonner toasts · date-fns · lucide-react · recharts 3 · next-themes.
 
 ## Commands
 All sessions share ONE folder (`D:\odoo-hackathon`) — file ownership below keeps us apart.
@@ -23,7 +23,8 @@ Seed logins (password **Brightloop@123**): `admin@brightloop.test`, `staff@brigh
 ## File ownership (HARD RULE)
 | Owner | Paths |
 |---|---|
-| **Main only** | `prisma/**`, `src/lib/*.ts` (top level), `src/lib/validators/auth.ts`, `src/components/ui/**`, `src/components/shared/**`, `src/components/motion/**`, `src/components/shell/**`, `src/app/(auth)/**`, `src/app/(app)/layout.tsx`, `src/app/portal/layout.tsx`, `src/app/portal/portal-nav.tsx`, `src/app/layout.tsx`, `src/app/globals.css`, `src/middleware.ts`, `package.json`, `CLAUDE.md`, `docs/CLAUDE.md`, `docs/CONTRACTS.md` |
+| **Main only** | `prisma/**`, `src/lib/*.ts` (top level), `src/lib/validators/auth.ts`, `src/middleware.ts`, `package.json`, `CLAUDE.md`, `docs/CLAUDE.md`, `docs/CONTRACTS.md` |
+| **E – Design system** | `src/app/globals.css`, `src/app/layout.tsx`, `src/components/ui/**`, `src/components/shared/**`, `src/components/motion/**`, `src/components/shell/**`, `src/app/(auth)/**` (UI only — keep actions logic), `src/app/(app)/layout.tsx`, `src/app/portal/layout.tsx`, `src/app/portal/portal-nav.tsx`, `src/app/forbidden/**`, `src/app/(app)/search/**` (command palette API) |
 | **A – Catalog** | `src/app/(app)/{products,plans,taxes,discounts,templates}/**`, `src/lib/validators/catalog.ts`, `src/components/catalog/**` |
 | **B – Subscriptions** | `src/app/(app)/subscriptions/**`, `src/lib/subscriptions/**`, `src/lib/validators/subscription.ts`, `src/components/subscriptions/**` |
 | **C – Billing** | `src/app/(app)/{invoices,payments}/**`, `src/lib/billing/**`, `src/lib/validators/billing.ts`, `src/components/billing/**` |
@@ -44,15 +45,11 @@ Need a schema field, shared helper, nav change or new package? **Don't edit it.*
 - Roles: mutations on catalog (products/plans/taxes/discounts/templates) = ADMIN only; STAFF can view. Discounts & team members: ADMIN only. Hide buttons the role can't use **and** enforce in the action.
 - No `any`, no `console.log` left behind, no commented-out code. Keep files < ~250 lines; split components.
 
-## Design system (professional, monochrome — NO colourful UI)
-- Use tokens only: `bg-background`, `bg-card`, `bg-muted`, `text-foreground`, `text-muted-foreground`, `border`, `bg-primary` (near-black), `text-brand`/`bg-brand-soft` (single indigo accent, sparingly), `text-destructive` (danger only).
-- **Never** use raw palette classes (`bg-blue-500`, `text-green-600`, `bg-red-100` …) or gradients.
-- Status → always `<StatusBadge status=… />` (outline pill + tiny dot). No filled coloured badges.
-- Page skeleton: `<PageHeader title description actions />` → `<Toolbar>` (SearchInput / FilterTabs) → `<DataTable columns rows rowHref />` → `<Pagination />`. Detail pages: `<Section>` cards + `<DetailList>`. KPIs: `<StatCard>`. Empty: `<EmptyState>`.
-- Forms: shadcn `Input/Select/Textarea/Switch/Checkbox` inside `<FormField label error hint>` in `<FormGrid>`. Create/edit in a dedicated page (`/x/new`, `/x/[id]`) or a `Sheet` for small entities. Primary action = default `Button`, secondary = `variant="outline"`, destructive behind `<ActionButton confirm=…>`.
-- Toasts via `sonner` (`toast.success/error`). Icons: lucide, `size-4`.
-- Money columns right-aligned (`align: "right"` in DataTable adds tabular numbers). Dates `dd MMM yyyy`.
-- Spacing: page sections `space-y-6`, cards `rounded-xl border bg-card`, no heavy shadows.
+## Design system — see docs/DESIGN.md (v2 "Premium SaaS")
+- **Read `docs/DESIGN.md` before any UI work.** It replaces the old monochrome rules.
+- Use tokens/utilities from globals.css (`bg-card`, `text-muted-foreground`, `bg-brand-gradient`, `shadow-card` …). Never raw palette classes in pages (`bg-blue-500` etc.) — status colour only via `<StatusBadge>`, chart colour only via `@/components/shared/charts`.
+- Shared components (`PageHeader`, `KpiCard`, `ChartCard`, charts, `AvatarName`, `MetricStrip`, `Timeline`, `Stepper`, `DataTable` …) are built by Session E. If one you need isn't there yet, do the rest of your work first and check again; never create your own copy.
+- Charts: Recharts (installed) — only through the shared chart components.
 
 ## Animation (GSAP) — must never slow the app
 Use only `src/components/motion`: `<FadeIn>`, `<Stagger>` (wrap a DataTable/StatCard grid; animates first 12 `[data-stagger]` items), `<CountUp>` (KPI numbers), `<Pulse trigger>` (status change). The app layout already fades page content in. Do not import `gsap` directly; no scroll-triggered or per-row infinite animations.

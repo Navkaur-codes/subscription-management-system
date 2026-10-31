@@ -40,6 +40,15 @@
         "3005"
       ],
       "port": 3005
+    },
+    {
+      "name": "dev-e",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:e"
+      ],
+      "port": 3006
     }
   ]
 }
