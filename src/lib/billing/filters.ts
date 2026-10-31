@@ -1,3 +1,6 @@
+import type { Prisma } from "@prisma/client";
+import { formatMoney, toNum } from "@/lib/format";
+
 /** Parse ?from=&to= (yyyy-mm-dd) into a Prisma date filter, inclusive of the whole "to" day. */
 export function dateFilter(from?: string, to?: string) {
   const parse = (v: string | undefined, time: string) => {
@@ -12,4 +15,9 @@ export function dateFilter(from?: string, to?: string) {
 
 export function str(v: string | string[] | undefined): string | undefined {
   return typeof v === "string" && v ? v : undefined;
+}
+
+/** Whole-rupee money for big summary figures (keeps them on one line on phones). */
+export function formatRupees(v: number | Prisma.Decimal | null): string {
+  return formatMoney(Math.round(toNum(v ?? 0))).replace(/\.00$/, "");
 }

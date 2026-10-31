@@ -22,3 +22,6 @@ When the whole acceptance checklist is done: npm run typecheck && npm run lint, 
 
 ## Follow-up prompts
 (appended by Main as they are sent)
+
+## Follow-up (T+~5h) — premium UI redesign
+Main asked: redesign invoices list, invoice detail and payments to `docs/DESIGN.md` v2 using Session E's shared components; add a no-write "Run billing preview" before Generate due invoices; test as staff at 1440×900 and 375×812.

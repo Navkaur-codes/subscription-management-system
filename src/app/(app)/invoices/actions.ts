@@ -9,6 +9,7 @@ import { emailLayout, sendMail } from "@/lib/mail";
 import { formatDate, formatMoney } from "@/lib/format";
 import { generateDueInvoices } from "@/lib/billing/generate";
 import { recordPayment } from "@/lib/billing/payments";
+import { previewDueBilling, type BillingPreview } from "@/lib/billing/preview";
 import type { PaymentInput } from "@/lib/validators/billing";
 
 function refresh(id?: string) {
@@ -27,6 +28,15 @@ export async function generateDueAction(): Promise<ActionResult<{ created: numbe
       (r.created === 0 ? "Nothing due — no invoices created" : `${r.created} invoice${r.created === 1 ? "" : "s"} created`) +
       (r.remaining > 0 ? ` · ${r.remaining} subscriptions still due, run again to continue` : "");
     return ok({ created: r.created }, msg);
+  } catch (e) {
+    return toFail(e);
+  }
+}
+
+export async function previewBillingAction(): Promise<ActionResult<BillingPreview>> {
+  try {
+    await requireRole("ADMIN", "STAFF");
+    return ok(await previewDueBilling());
   } catch (e) {
     return toFail(e);
   }

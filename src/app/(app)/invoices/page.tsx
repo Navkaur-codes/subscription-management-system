@@ -1,40 +1,40 @@
-import Link from "next/link";
+import { FileText } from "lucide-react";
+import { differenceInCalendarDays } from "date-fns";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 import { PAGE_SIZE, pageParams } from "@/lib/action";
-import { displayStatus, outstanding, overdueWhere } from "@/lib/invoice-status";
+import { displayStatus, isOverdue, outstanding, overdueWhere } from "@/lib/invoice-status";
 import { formatDate, formatMoney, round2, toNum } from "@/lib/format";
-import { dateFilter, str } from "@/lib/billing/filters";
+import { dateFilter, formatRupees, str } from "@/lib/billing/filters";
 import { PageHeader } from "@/components/shared/page-header";
 import { DataTable, EmptyState, type Column } from "@/components/shared/data-table";
 import { FilterTabs, Pagination, SearchInput, Toolbar } from "@/components/shared/list-controls";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { StatCard } from "@/components/shared/stat-card";
-import { ActionButton } from "@/components/shared/action-button";
-import { Stagger } from "@/components/motion";
+import { AvatarName, MetricStrip } from "@/components/shared/display";
 import { DateRange } from "@/components/billing/date-range";
-import { generateDueAction } from "./actions";
+import { BillingRunDialog } from "@/components/billing/billing-run-dialog";
+import { generateDueAction, previewBillingAction } from "./actions";
 
 export const metadata = { title: "Invoices" };
 
 const TABS = [
   { value: "", label: "All" },
   { value: "draft", label: "Draft" },
-  { value: "confirmed", label: "Confirmed" },
   { value: "outstanding", label: "Outstanding" },
   { value: "overdue", label: "Overdue" },
   { value: "paid", label: "Paid" },
   { value: "cancelled", label: "Cancelled" },
-];
+] as const;
+type Tab = (typeof TABS)[number]["value"];
 
+// Outstanding = CONFIRMED (payments flip an invoice to PAID once amountPaid ≥ total).
 function statusWhere(s?: string): Prisma.InvoiceWhereInput {
   switch (s) {
     case "draft":
       return { status: "DRAFT" };
     case "confirmed":
-      return { status: "CONFIRMED" };
-    case "outstanding": // stored amountPaid < total ⇔ status still CONFIRMED (payments flip to PAID when settled)
+    case "outstanding":
       return { status: "CONFIRMED" };
     case "overdue":
       return overdueWhere();
@@ -53,101 +53,116 @@ const rowSelect = {
   status: true,
   invoiceDate: true,
   dueDate: true,
+  periodStart: true,
+  periodEnd: true,
   total: true,
   amountPaid: true,
   customer: { select: { name: true } },
-  subscription: { select: { id: true, number: true } },
+  subscription: { select: { number: true } },
 } satisfies Prisma.InvoiceSelect;
 type Row = Prisma.InvoiceGetPayload<{ select: typeof rowSelect }>;
 
+function numberCell(r: Row) {
+  const late = isOverdue(r) ? differenceInCalendarDays(new Date(), r.dueDate) : 0;
+  return (
+    <span className="flex items-center gap-3">
+      <span className={late ? "h-8 w-0.5 rounded-full bg-danger" : "h-8 w-0.5"} aria-hidden />
+      <span className="flex flex-col">
+        <span className="font-medium">{r.number}</span>
+        <span className={late ? "text-xs text-danger" : "text-xs text-muted-foreground"}>
+          {late
+            ? `${late} day${late === 1 ? "" : "s"} overdue`
+            : r.periodStart && r.periodEnd
+              ? `${formatDate(r.periodStart)} – ${formatDate(r.periodEnd)}`
+              : "One-off"}
+        </span>
+      </span>
+    </span>
+  );
+}
+
 const columns: Column<Row>[] = [
-  { key: "number", header: "Number", cell: (r) => <span className="font-medium">{r.number}</span> },
-  { key: "customer", header: "Customer", cell: (r) => r.customer.name },
-  {
-    key: "subscription",
-    header: "Subscription",
-    cell: (r) =>
-      r.subscription ? (
-        <Link href={`/subscriptions/${r.subscription.id}`} className="text-muted-foreground hover:text-foreground hover:underline">
-          {r.subscription.number}
-        </Link>
-      ) : (
-        "—"
-      ),
-  },
-  { key: "date", header: "Invoice date", cell: (r) => formatDate(r.invoiceDate) },
-  { key: "due", header: "Due date", cell: (r) => formatDate(r.dueDate) },
+  { key: "number", header: "Invoice", cell: numberCell },
+  { key: "customer", header: "Customer", cell: (r) => <AvatarName name={r.customer.name} sub={r.subscription?.number} size="sm" /> },
+  { key: "date", header: "Issued", cell: (r) => formatDate(r.invoiceDate), className: "hidden md:table-cell" },
+  { key: "due", header: "Due", cell: (r) => formatDate(r.dueDate), className: "hidden md:table-cell" },
   { key: "status", header: "Status", cell: (r) => <StatusBadge status={displayStatus(r)} /> },
   { key: "total", header: "Total", align: "right", cell: (r) => formatMoney(r.total) },
-  { key: "outstanding", header: "Outstanding", align: "right", cell: (r) => formatMoney(outstanding(r)) },
+  { key: "outstanding", header: "Balance", align: "right", cell: (r) => formatMoney(outstanding(r)), className: "hidden sm:table-cell" },
 ];
+
+type Sums = { _sum: { total: Prisma.Decimal | null; amountPaid: Prisma.Decimal | null } };
+const open = (a: Sums) => round2(toNum(a._sum.total ?? 0) - toNum(a._sum.amountPaid ?? 0));
 
 export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   await requireRole("ADMIN", "STAFF");
   const sp = await searchParams;
   const { page, skip, take } = pageParams(sp);
   const q = str(sp.q);
+  const status = str(sp.status);
   const invoiceDate = dateFilter(str(sp.from), str(sp.to));
 
-  const where: Prisma.InvoiceWhereInput = {
-    ...statusWhere(str(sp.status)),
+  // base = search + date range; tabs count against it, the table/metrics add the status filter
+  const base: Prisma.InvoiceWhereInput = {
     ...(invoiceDate ? { invoiceDate } : {}),
-    ...(q
-      ? {
-          OR: [
-            { number: { contains: q, mode: "insensitive" } },
-            { customer: { name: { contains: q, mode: "insensitive" } } },
-          ],
-        }
-      : {}),
+    ...(q ? { OR: [{ number: { contains: q, mode: "insensitive" } }, { customer: { name: { contains: q, mode: "insensitive" } } }] } : {}),
   };
-  const openWhere: Prisma.InvoiceWhereInput = { AND: [where, { status: "CONFIRMED" }] };
+  const where: Prisma.InvoiceWhereInput = { AND: [base, statusWhere(status)] };
+  const sum = { _sum: { total: true, amountPaid: true } } as const;
 
-  const [rows, count, sums, open] = await Promise.all([
+  const [rows, count, byStatus, overdueCount, billed, confirmed, overdue] = await Promise.all([
     db.invoice.findMany({ where, select: rowSelect, orderBy: [{ invoiceDate: "desc" }, { number: "desc" }], skip, take }),
     db.invoice.count({ where }),
-    db.invoice.aggregate({ where: { AND: [where, { status: { not: "CANCELLED" } }] }, _sum: { total: true } }),
-    db.invoice.aggregate({ where: openWhere, _sum: { total: true, amountPaid: true } }),
+    db.invoice.groupBy({ by: ["status"], where: base, _count: { _all: true } }),
+    db.invoice.count({ where: { AND: [base, overdueWhere()] } }),
+    db.invoice.aggregate({ where: { AND: [where, { status: { not: "CANCELLED" } }] }, ...sum }),
+    db.invoice.aggregate({ where: { AND: [where, { status: "CONFIRMED" }] }, ...sum }),
+    db.invoice.aggregate({ where: { AND: [where, overdueWhere()] }, ...sum }),
   ]);
-  const outstandingSum = round2(toNum(open._sum.total ?? 0) - toNum(open._sum.amountPaid ?? 0));
+
+  const n = (s: string) => byStatus.find((b) => b.status === s)?._count._all ?? 0;
+  const counts: Record<Tab, number> = {
+    "": byStatus.reduce((a, b) => a + b._count._all, 0),
+    draft: n("DRAFT"),
+    outstanding: n("CONFIRMED"),
+    overdue: overdueCount,
+    paid: n("PAID"),
+    cancelled: n("CANCELLED"),
+  };
+  const tabs = TABS.map((t) => ({ value: t.value, label: `${t.label} ${counts[t.value].toLocaleString("en-IN")}` }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
+        eyebrow="Billing"
+        icon={FileText}
         title="Invoices"
-        description="Generated from subscriptions — billed once per period."
-        actions={
-          <ActionButton
-            action={generateDueAction}
-            variant="default"
-            confirm={{
-              title: "Generate due invoices?",
-              description: "Creates draft invoices for every active subscription whose billing date has arrived. Already billed periods are skipped.",
-              confirmLabel: "Generate",
-            }}
-          >
-            Generate due invoices
-          </ActionButton>
-        }
+        description="Generated from subscriptions and billed exactly once per period."
+        actions={<BillingRunDialog preview={previewBillingAction} run={generateDueAction} />}
       />
-      <Stagger className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Invoices" value={count.toLocaleString("en-IN")} />
-        <StatCard label="Total billed" value={formatMoney(sums._sum.total ?? 0)} hint="Excludes cancelled" />
-        <StatCard label="Outstanding" value={formatMoney(outstandingSum)} tone={outstandingSum > 0 ? "danger" : "default"} />
-      </Stagger>
+      <MetricStrip
+        items={[
+          { label: "Invoiced", value: formatRupees(billed._sum.total), hint: `${count.toLocaleString("en-IN")} invoices` },
+          { label: "Collected", value: formatRupees(billed._sum.amountPaid) },
+          { label: "Outstanding", value: formatRupees(open(confirmed)) },
+          { label: "Overdue", value: formatRupees(open(overdue)), hint: "Past due date, unpaid" },
+        ]}
+      />
       <div>
+        <div className="mb-3 max-w-full overflow-x-auto [scrollbar-width:none]">
+          <FilterTabs param="status" options={tabs} />
+        </div>
         <Toolbar>
           <div className="flex flex-wrap items-center gap-2">
             <SearchInput placeholder="Search number or customer…" />
             <DateRange />
           </div>
-          <FilterTabs param="status" options={TABS} />
         </Toolbar>
         <DataTable
           columns={columns}
           rows={rows}
           rowHref={(r) => `/invoices/${r.id}`}
-          empty={<EmptyState title="No invoices" description="Nothing matches these filters." />}
+          empty={<EmptyState icon={FileText} title="No invoices" description="Nothing matches these filters." />}
         />
         <Pagination page={page} pageSize={PAGE_SIZE} total={count} />
       </div>

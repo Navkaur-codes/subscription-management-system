@@ -25,8 +25,17 @@ export function PaymentDialog({ invoiceId, outstanding, today, action }: Props) 
   const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [form, setForm] = useState({ method: "BANK_TRANSFER", amount: String(outstanding), paymentDate: today, reference: "", note: "" });
+  const blank = () => ({ method: "BANK_TRANSFER", amount: String(outstanding), paymentDate: today, reference: "", note: "" });
+  const [form, setForm] = useState(blank);
   const upd = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+  // start every opening from the current balance, not the previous entry
+  const onOpenChange = (o: boolean) => {
+    if (o) {
+      setForm(blank());
+      setErrors({});
+    }
+    setOpen(o);
+  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +61,7 @@ export function PaymentDialog({ invoiceId, outstanding, today, action }: Props) 
   };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
         <Button size="sm">
           <Wallet className="size-4" />

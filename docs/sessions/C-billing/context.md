@@ -38,3 +38,4 @@ No invoice is typed by hand: invoices are generated from subscriptions (customer
 - [x] Routes: `/invoices/new?subscriptionId=` (redirects / explains), `/invoices` (tabs, search, date range, summary, Generate due), `/invoices/[id]` (Confirm/Cancel/Send/Print/Register payment)
 - [x] Payments: `recordPayment` (≤ outstanding, auto-PAID) + `/payments` (method tabs, search, date range, total)
 - [x] Verified in browser: 12-seat sub → 10% bulk discount, partial → PARTIAL, full → PAID, Ethereal preview, Generate due twice → 1 then 0
+- [x] Redesign v2: invoices list (MetricStrip, tab counts, AvatarName, overdue accent, billing-run preview dialog via `src/lib/billing/preview.ts`), invoice detail (toolbar hero, paper document, payment progress, customer card, activity Timeline), payments (KpiCards w/ sparkline + MoM delta, method Donut, AvatarName list). Tested as staff at 1440 and 375.

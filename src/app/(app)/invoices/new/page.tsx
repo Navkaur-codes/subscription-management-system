@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CalendarCheck } from "lucide-react";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { generateInvoiceForSubscription, type GenerateResult } from "@/lib/billing/generate";
@@ -21,8 +22,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
   return (
     <>
       <PageHeader title="Create invoice" />
-      <div className="rounded-xl border bg-card">
+      <div className="card-surface">
         <EmptyState
+          icon={CalendarCheck}
           title="Nothing to invoice"
           description={res.reason}
           action={

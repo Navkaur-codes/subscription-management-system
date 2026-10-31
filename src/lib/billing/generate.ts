@@ -13,15 +13,15 @@ export type GenerateResult =
 /** Thrown inside the transaction when another run used up the discount first. */
 class DiscountExhausted extends Error {}
 
-const discountInclude = { products: true } satisfies Prisma.DiscountInclude;
-type DiscountRow = Prisma.DiscountGetPayload<{ include: typeof discountInclude }>;
+export const discountInclude = { products: true } satisfies Prisma.DiscountInclude;
+export type DiscountRow = Prisma.DiscountGetPayload<{ include: typeof discountInclude }>;
 
 function toRule(d: DiscountRow): DiscountRule {
   return { ...d, value: toNum(d.value), minPurchase: toNum(d.minPurchase), productIds: d.products.map((p) => p.productId) };
 }
 
 /** Pick the subscription's own discount, or else the best valid active discount. */
-function bestPricing(inputs: PriceLineInput[], own: DiscountRow | null, all: DiscountRow[], on: Date) {
+export function bestPricing(inputs: PriceLineInput[], own: DiscountRow | null, all: DiscountRow[], on: Date) {
   let best: { priced: PricedTotals; discountId: string | null } = { priced: priceLines(inputs, null, on), discountId: null };
   const candidates = own ? [own] : all;
   for (const d of candidates) {
