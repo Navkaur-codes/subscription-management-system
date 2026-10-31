@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import { Inbox, type LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Orbit } from "@/components/motion";
 
 export type Column<T> = {
   key: string;
@@ -29,16 +30,16 @@ export function DataTable<T extends { id: string }>({
   footer?: ReactNode;
 }) {
   return (
-    <div className="card-surface overflow-hidden">
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="sticky top-0 z-30 bg-muted/50 backdrop-blur">
-            <tr className="border-b">
+          <thead className="sticky top-0 z-30 bg-card">
+            <tr className="border-b border-border">
               {columns.map((c) => (
                 <th
                   key={c.key}
                   className={cn(
-                    "h-10 px-5 text-[11px] font-semibold tracking-wider whitespace-nowrap text-muted-foreground uppercase",
+                    "h-10 px-5 font-mono-num text-[10.5px] font-normal tracking-[0.14em] whitespace-nowrap text-muted-foreground uppercase",
                     c.align === "right" ? "text-right" : c.align === "center" ? "text-center" : "text-left",
                     c.className
                   )}
@@ -59,7 +60,7 @@ export function DataTable<T extends { id: string }>({
                   key={row.id}
                   data-stagger
                   className={cn(
-                    "group/row relative border-b border-border/70 transition-colors last:border-0 hover:bg-brand-soft/40",
+                    "group/row relative border-b border-border/70 transition-colors last:border-0 hover:bg-muted/60",
                     rowHref && "cursor-pointer"
                   )}
                 >
@@ -70,7 +71,7 @@ export function DataTable<T extends { id: string }>({
                         "h-13 px-5 whitespace-nowrap",
                         // overlay link (z-10) takes row clicks; real controls inside cells stay clickable above it
                         rowHref && "[&_a:not([data-row-link])]:relative [&_a:not([data-row-link])]:z-20 [&_button]:relative [&_button]:z-20 [&_input]:relative [&_input]:z-20",
-                        c.align === "right" && "num text-right",
+                        c.align === "right" && "font-mono-num text-right text-[13px]",
                         c.align === "center" && "text-center",
                         c.className
                       )}
@@ -85,7 +86,7 @@ export function DataTable<T extends { id: string }>({
               ))
             )}
           </tbody>
-          {footer && <tfoot className="border-t bg-muted/40 font-medium">{footer}</tfoot>}
+          {footer && <tfoot className="border-t border-border bg-muted/40 font-medium">{footer}</tfoot>}
         </table>
       </div>
     </div>
@@ -96,7 +97,7 @@ export function EmptyState({
   title,
   description,
   action,
-  icon: Icon = Inbox,
+  icon: Icon,
 }: {
   title: string;
   description?: string;
@@ -105,12 +106,10 @@ export function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-2 px-6 py-16 text-center">
-      <div className="mb-2 rounded-2xl bg-brand-gradient p-px shadow-[0_8px_24px_-10px_rgb(76_50_220/0.6)]">
-        <div className="flex size-12 items-center justify-center rounded-[15px] bg-card">
-          <Icon className="size-5 text-brand" />
-        </div>
-      </div>
-      <p className="text-[15px] font-semibold">{title}</p>
+      <Orbit size={72} dots={2} speed={14} className="mb-3 text-muted-foreground">
+        {Icon && <Icon className="size-4 text-foreground" strokeWidth={1.75} />}
+      </Orbit>
+      <p className="font-display text-2xl leading-tight">{title}</p>
       {description && <p className="max-w-sm text-sm text-muted-foreground">{description}</p>}
       {action && <div className="mt-3">{action}</div>}
     </div>

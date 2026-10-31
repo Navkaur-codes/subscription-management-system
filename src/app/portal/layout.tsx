@@ -10,19 +10,18 @@ export default async function PortalLayout({ children }: { children: React.React
   const user = await requireRole("CUSTOMER");
   return (
     <div className="min-h-svh bg-canvas">
-      <header className="no-print sticky top-0 z-30 overflow-hidden bg-sidebar text-sidebar-foreground shadow-[0_1px_0_var(--sidebar-border)]">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_140%_at_15%_0%,rgb(124_58_237/0.35),transparent_70%)]"
-        />
-        <div className="relative mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-8 sm:px-6">
+      <header className="no-print sticky top-0 z-30 border-b border-sidebar-border bg-sidebar text-sidebar-foreground">
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-8 sm:px-6">
           <Link href="/portal" aria-label="Brightloop portal" className="shrink-0">
-            <Logo className="sm:hidden" withText={false} />
-            <Logo className="hidden sm:inline-flex" textClassName="text-white" />
+            <Logo animated withText={false} className="sm:hidden" />
+            <Logo animated className="hidden sm:inline-flex" />
           </Link>
           <PortalNav />
           <div className="ml-auto flex shrink-0 items-center gap-1.5">
-            <ThemeToggle className="hidden text-sidebar-muted sm:inline-flex hover:bg-sidebar-accent hover:text-white dark:hover:bg-sidebar-accent" />
+            <span className="mr-2 hidden font-mono-num text-[10.5px] tracking-[0.16em] text-sidebar-muted uppercase md:inline">
+              Customer portal
+            </span>
+            <ThemeToggle className="hidden text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground sm:inline-flex dark:hover:bg-sidebar-accent" />
             <UserMenu user={user} />
           </div>
         </div>

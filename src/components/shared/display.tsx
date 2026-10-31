@@ -3,7 +3,14 @@ import { Check, Circle, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Tone } from "@/components/shared/status-badge";
 
-const AVATAR_BG = ["bg-chart-1", "bg-chart-2", "bg-chart-3", "bg-chart-4", "bg-chart-5", "bg-chart-6"];
+const AVATAR_BG = [
+  "bg-ember text-white",
+  "bg-primary text-primary-foreground",
+  "bg-chart-3 text-ink",
+  "bg-chart-4 text-ink",
+  "bg-chart-5 text-white",
+  "bg-secondary text-foreground ring-1 ring-border ring-inset",
+];
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -33,7 +40,7 @@ export function AvatarName({
       <span
         aria-hidden
         className={cn(
-          "flex shrink-0 items-center justify-center rounded-full font-semibold text-white ring-2 ring-card",
+          "flex shrink-0 items-center justify-center rounded-full font-mono-num font-semibold",
           AVATAR_BG[hash(name) % AVATAR_BG.length],
           size === "sm" && "size-7 text-[10px]",
           size === "md" && "size-8 text-xs",
@@ -53,11 +60,11 @@ export function AvatarName({
 /** Horizontal summary bar above tables (count / total / outstanding). */
 export function MetricStrip({ items, className }: { items: { label: string; value: ReactNode; hint?: ReactNode }[]; className?: string }) {
   return (
-    <div className={cn("card-surface mb-6 grid grid-cols-2 divide-border overflow-hidden sm:flex sm:divide-x", className)}>
+    <div className={cn("mb-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border shadow-card sm:flex", className)}>
       {items.map((i) => (
-        <div key={i.label} className="min-w-0 flex-1 px-5 py-4">
-          <p className="eyebrow truncate">{i.label}</p>
-          <p className="num mt-1 text-base font-semibold tracking-tight break-words sm:truncate sm:text-lg">{i.value}</p>
+        <div key={i.label} className="min-w-0 flex-1 bg-card px-5 py-4">
+          <p className="truncate font-mono-num text-[10.5px] tracking-[0.14em] text-muted-foreground uppercase">{i.label}</p>
+          <p className="mt-1.5 font-mono-num text-base font-medium break-words sm:truncate sm:text-lg">{i.value}</p>
           {i.hint && <p className="truncate text-xs text-muted-foreground">{i.hint}</p>}
         </div>
       ))}
@@ -66,7 +73,7 @@ export function MetricStrip({ items, className }: { items: { label: string; valu
 }
 
 const TL_TONE: Record<Tone | "brand", string> = {
-  brand: "bg-brand-gradient text-white",
+  brand: "bg-ember text-white",
   neutral: "bg-neutral-soft text-neutral",
   info: "bg-info-soft text-info",
   success: "bg-success-soft text-success",
@@ -100,7 +107,7 @@ export function Timeline({
             <div className="min-w-0 flex-1 pt-0.5">
               <div className="flex flex-wrap items-baseline justify-between gap-x-3">
                 <p className="text-sm font-medium">{it.title}</p>
-                <p className="num text-xs text-muted-foreground">{it.time}</p>
+                <p className="font-mono-num text-[11px] text-muted-foreground">{it.time}</p>
               </div>
               {it.description && <p className="mt-0.5 text-xs text-muted-foreground">{it.description}</p>}
             </div>
@@ -123,9 +130,9 @@ export function Stepper({ steps, current, side }: { steps: string[]; current: nu
             <div className="flex items-center gap-2">
               <span
                 className={cn(
-                  "flex size-6 items-center justify-center rounded-full text-[11px] font-semibold",
-                  done && "bg-brand-gradient text-white",
-                  active && "bg-brand-gradient text-white ring-4 ring-brand-soft",
+                  "flex size-6 items-center justify-center rounded-full font-mono-num text-[11px] font-semibold transition-colors",
+                  done && "bg-primary text-primary-foreground",
+                  active && "bg-ember text-white ring-4 ring-ember-soft",
                   !done && !active && "bg-muted text-muted-foreground ring-1 ring-border ring-inset"
                 )}
               >
@@ -136,7 +143,7 @@ export function Stepper({ steps, current, side }: { steps: string[]; current: nu
               </span>
             </div>
             {i < steps.length - 1 && (
-              <span className={cn("mx-2 h-px w-6 sm:mx-3 sm:w-10", i < current ? "bg-brand" : "bg-border")} />
+              <span className={cn("mx-2 h-px w-6 sm:mx-3 sm:w-10", i < current ? "bg-foreground" : "bg-border")} />
             )}
           </div>
         );

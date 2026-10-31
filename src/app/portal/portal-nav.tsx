@@ -2,12 +2,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { FlipIndicator } from "@/components/motion";
 import { PORTAL_NAV } from "@/components/shell/nav";
 
 export function PortalNav() {
   const pathname = usePathname();
   return (
-    <nav className="flex min-w-0 items-center gap-1 overflow-x-auto [scrollbar-width:none]">
+    <nav className="flex h-full min-w-0 items-stretch gap-1 overflow-x-auto [scrollbar-width:none]">
       {PORTAL_NAV.map((i) => {
         const active = i.href === "/portal" ? pathname === "/portal" : pathname.startsWith(i.href);
         return (
@@ -16,14 +17,12 @@ export function PortalNav() {
             href={i.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "relative shrink-0 rounded-lg px-3 py-1.5 text-sm whitespace-nowrap text-sidebar-muted transition-colors hover:bg-sidebar-accent hover:text-white",
-              active && "bg-white/[0.09] font-medium text-white"
+              "relative flex shrink-0 items-center px-3 text-sm whitespace-nowrap text-sidebar-muted transition-colors hover:text-sidebar-foreground",
+              active && "text-sidebar-foreground"
             )}
           >
             {i.label}
-            {active && (
-              <span className="absolute inset-x-3 -bottom-[13px] h-[3px] rounded-t-full bg-brand-gradient shadow-[0_0_12px_rgb(124_58_237/0.9)]" />
-            )}
+            {active && <FlipIndicator layoutId="portal-nav" className="absolute inset-x-3 bottom-0 h-0.5 bg-ember" />}
           </Link>
         );
       })}

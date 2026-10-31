@@ -1,1 +1,1 @@
-export { KpiCard } from "@/components/shared/stat-card";
+export { KpiCard, KpiStrip } from "@/components/shared/stat-card";

@@ -82,11 +82,11 @@ export function CommandPalette({ role }: { role: Role }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-9 w-full max-w-sm items-center gap-2 rounded-xl border bg-card px-3 text-sm text-muted-foreground shadow-xs transition-colors hover:border-brand/40 hover:text-foreground"
+        className="flex h-9 w-full max-w-sm items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground"
       >
         <Search className="size-4" />
         <span className="flex-1 truncate text-left">Search or jump to…</span>
-        <kbd className="hidden rounded-md border bg-muted px-1.5 py-0.5 font-sans text-[10px] font-medium sm:inline">Ctrl K</kbd>
+        <kbd className="hidden rounded border border-border bg-muted px-1.5 py-0.5 font-mono-num text-[10px] sm:inline">Ctrl K</kbd>
       </button>
       <CommandDialog open={open} onOpenChange={setOpen} className="sm:max-w-xl" title="Search" description="Search pages, customers, subscriptions and invoices">
         <Command shouldFilter={false}>
@@ -99,7 +99,7 @@ export function CommandPalette({ role }: { role: Role }) {
                   {hits[key].map((h: SearchHit) => (
                     <CommandItem key={h.id} value={`${key}-${h.id}`} onSelect={() => go(h.href)}>
                       <Icon className="text-muted-foreground" />
-                      <span className="font-medium">{h.label}</span>
+                      <span className="font-mono-num text-[13px] font-medium">{h.label}</span>
                       <span className="truncate text-xs text-muted-foreground">{h.sub}</span>
                     </CommandItem>
                   ))}

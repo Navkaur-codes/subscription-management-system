@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { FlipIndicator } from "@/components/motion";
 
 /** Hook: update one or more query params (resets page to 1). */
 export function useQueryParams() {
@@ -55,20 +56,24 @@ export function FilterTabs({
   const { sp, set } = useQueryParams();
   const current = sp.get(param) ?? "";
   return (
-    <div className="inline-flex max-w-full overflow-x-auto [scrollbar-width:none] rounded-full bg-muted/80 p-1 ring-1 ring-border/60 ring-inset">
-      {options.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          onClick={() => set({ [param]: o.value })}
-          className={cn(
-            "rounded-full px-3.5 py-1.5 text-xs font-medium whitespace-nowrap text-muted-foreground transition-all hover:text-foreground",
-            current === o.value && "bg-card text-foreground shadow-sm ring-1 ring-ring-subtle"
-          )}
-        >
-          {o.label}
-        </button>
-      ))}
+    <div className="inline-flex max-w-full overflow-x-auto [scrollbar-width:none] rounded-lg border border-border bg-card p-0.5">
+      {options.map((o) => {
+        const active = current === o.value;
+        return (
+          <button
+            key={o.value}
+            type="button"
+            onClick={() => set({ [param]: o.value })}
+            className={cn(
+              "relative rounded-md px-3 py-1.5 text-xs font-medium whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground",
+              active && "text-primary-foreground hover:text-primary-foreground"
+            )}
+          >
+            {active && <FlipIndicator layoutId={`tabs-${param}`} className="absolute inset-0 rounded-md bg-primary" />}
+            <span className="relative">{o.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -92,7 +97,7 @@ export function Pagination({ page, pageSize, total }: { page: number; pageSize: 
   const to = Math.min(page * pageSize, total);
   return (
     <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
-      <span className="num">
+      <span className="font-mono-num text-xs">
         {from}–{to} of {total.toLocaleString("en-IN")}
       </span>
       <div className="flex gap-1">

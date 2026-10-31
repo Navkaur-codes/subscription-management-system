@@ -28,4 +28,5 @@ Turn the plain admin template into a premium SaaS look (see `docs/DESIGN.md`). Y
 - [x] 4 Auth split screen with floating GSAP preview cards (`Float` in motion)
 - [x] 5 Portal ink header + forbidden page
 - Tested: /subscriptions (staff) 1440 + 375, light + dark, mobile sheet, ⌘K search "kiran"; /login; /portal (customer) 375 dark + 1100 light. Ctrl+K hotkey not verifiable in the pane (button click works).
+- [x] v3 "Ember Loop": motion primitives (RevealText, ScrambleNumber, Orbit, Ticker, Magnetic, FlipIndicator, DrawIn), v2 purge, shell, shared components, portal, forbidden — see prompt.md
 - Note: `.claude/launch.json` got a `dev-e` entry (needed for preview).

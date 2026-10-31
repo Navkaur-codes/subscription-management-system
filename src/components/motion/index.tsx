@@ -4,13 +4,11 @@
  * skipped under prefers-reduced-motion. Use these — don't import gsap in pages.
  */
 import { useRef, type ReactNode } from "react";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
+import { gsap, reduced, useGSAP } from "./gsap";
 
-gsap.registerPlugin(useGSAP);
-
-const reduced = () =>
-  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+export { RevealText, ScrambleNumber, formatNumber, type NumberFormat } from "./text";
+export { Orbit } from "./orbit";
+export { Ticker, Magnetic, FlipIndicator, DrawIn } from "./interact";
 
 /** Fade + 8px rise for a block (page body, card, auth form). */
 export function FadeIn({

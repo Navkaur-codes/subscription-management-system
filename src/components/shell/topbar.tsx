@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronRight, LogOut, Menu } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
@@ -16,7 +16,7 @@ import {
 import { logoutAction } from "@/app/(auth)/actions";
 import { humanize } from "@/lib/format";
 import type { SessionPayload } from "@/lib/session";
-import { SidebarGlow, SidebarNav, SidebarUser } from "./sidebar";
+import { SidebarNav, SidebarUser, initials } from "./sidebar";
 import { NAV } from "./nav";
 import { Logo } from "./logo";
 import { CommandPalette } from "./command-palette";
@@ -28,7 +28,6 @@ function currentTitle(pathname: string) {
 }
 
 export function UserMenu({ user }: { user: SessionPayload }) {
-  const initials = user.name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -36,16 +35,17 @@ export function UserMenu({ user }: { user: SessionPayload }) {
           aria-label="Account menu"
           className="flex items-center gap-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <span className="flex size-9 items-center justify-center rounded-full bg-brand-gradient text-xs font-semibold text-white ring-2 ring-card shadow-sm">
-            {initials}
+          <span className="flex size-9 items-center justify-center rounded-full bg-primary font-mono-num text-[11px] font-semibold text-primary-foreground ring-2 ring-transparent transition-shadow hover:ring-ember">
+            {initials(user.name)}
           </span>
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-60 rounded-xl">
+      <DropdownMenuContent align="end" className="w-60 rounded-lg">
         <DropdownMenuLabel className="font-normal">
           <p className="text-sm font-medium">{user.name}</p>
           <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-          <span className="mt-1.5 inline-flex rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-medium text-brand">
+          <span className="mt-1.5 inline-flex items-center gap-1.5 font-mono-num text-[10.5px] tracking-wider text-muted-foreground uppercase">
+            <span className="size-1.5 rounded-full bg-ember" />
             {humanize(user.role)}
           </span>
         </DropdownMenuLabel>
@@ -65,7 +65,7 @@ export function Topbar({ user }: { user: SessionPayload }) {
   const t = currentTitle(pathname);
   const deeper = t && pathname !== t.href;
   return (
-    <header className="no-print sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border/70 bg-background/75 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+    <header className="no-print sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-canvas px-4 sm:px-6 lg:px-8">
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="-ml-1 md:hidden" aria-label="Open navigation">
@@ -73,26 +73,25 @@ export function Topbar({ user }: { user: SessionPayload }) {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="flex w-72 flex-col gap-0 border-0 bg-sidebar p-0 text-sidebar-foreground">
-          <SidebarGlow />
-          <SheetTitle className="relative flex h-16 items-center px-5">
-            <Logo textClassName="text-white" />
+          <SheetTitle className="flex h-16 items-center px-5 text-sidebar-foreground">
+            <Logo animated />
           </SheetTitle>
           <SidebarNav role={user.role} pathname={pathname} onNavigate={() => setOpen(false)} />
           <SidebarUser user={user} />
         </SheetContent>
       </Sheet>
-      <nav aria-label="Breadcrumb" className="hidden min-w-0 items-center gap-1.5 text-sm text-muted-foreground lg:flex">
+      <nav aria-label="Breadcrumb" className="hidden min-w-0 items-center gap-2 font-mono-num text-[11px] tracking-[0.12em] text-muted-foreground uppercase lg:flex">
         {t && (
           <>
             <span>{t.group}</span>
-            <ChevronRight className="size-3.5 opacity-60" />
-            <Link href={t.href} className={deeper ? "hover:text-foreground" : "font-medium text-foreground"}>
+            <span className="text-border">/</span>
+            <Link href={t.href} className={deeper ? "hover:text-foreground" : "text-foreground"}>
               {t.label}
             </Link>
             {deeper && (
               <>
-                <ChevronRight className="size-3.5 opacity-60" />
-                <span className="font-medium text-foreground">Details</span>
+                <span className="text-border">/</span>
+                <span className="text-foreground">Details</span>
               </>
             )}
           </>
