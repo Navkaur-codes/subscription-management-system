@@ -1,23 +1,23 @@
 # Prompts — Session C
 
-## 1. Initial prompt (paste into the new session)
+## 1. Initial prompt
 ```
 You are Session C of a parallel hackathon build (Brightloop Subscription Management System).
-You are working in your own git worktree on branch feat/billing. Main session coordinates and merges.
+Four sessions (A–D) and a Main coordinator share ONE folder, D:\odoo-hackathon. Strict file ownership keeps you apart.
 
 Read, in this order, and nothing else up front:
-1. CLAUDE.md (global hard rules: file ownership, conventions, design system, GSAP, token economy)
+1. CLAUDE.md (hard rules: file ownership, conventions, design system, GSAP, token economy, git)
 2. docs/CONTRACTS.md (schema, shared helpers, routes, cross-module links)
 3. docs/sessions/C-billing/context.md (your scope, build order, acceptance checklist)
 
-Then:
-- Run: npm install (if node_modules missing) and npx prisma generate. The .env file is copied in for you; do NOT run migrations or seed (Main owns the DB).
-- Build the items in context.md in the listed order. Only touch files you own. Reuse shared components/helpers — never re-implement pricing, status rules, formatting or tables.
-- Start dev server on port 3003 (npm run dev -- -p 3003) only when you need to check a page.
-- After each build item: npm run typecheck, tick it in your context.md "Status", commit "feat(billing): ...".
-- If you need anything outside your files (schema field, shared helper, package), stop and write it under "Requests to Main" in your context.md, then tell me.
-- Hard timebox: 1h45m. Prefer finishing the checklist over polish. Keep replies short.
-When everything in the acceptance checklist is done, run npm run typecheck and npm run lint, commit, and reply "SESSION C DONE" with a 5-line summary.
+Rules:
+- Only create/edit files you own. Reuse shared components/helpers; never re-implement pricing, status rules, formatting or tables.
+- Do NOT run npm install, npm run build, prisma migrate/generate or seed. DB is shared and seeded.
+- Do NOT run git commit/add/push/checkout/stash. The user commits. After each build item: npm run typecheck, tick it under "Status" in your context.md, then end the reply with a "Suggested commit" bash block (git add <your paths only> + git commit -m "feat(billing): ...").
+- Dev server only when you need to look at a page: npm run dev:c (port 3003). Logins in CLAUDE.md.
+- Need something outside your files (schema field, shared helper, package)? Write it under "Requests to Main" in your context.md and message the Main session; keep working on other items.
+- Hard timebox 1h45m. Finish the checklist before polishing. Keep replies short.
+When the whole acceptance checklist is done: npm run typecheck && npm run lint, update Status, and reply "SESSION C DONE" with a 5-line summary plus the final suggested commit.
 ```
 
 ## Follow-up prompts

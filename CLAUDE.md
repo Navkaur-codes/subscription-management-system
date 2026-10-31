@@ -14,7 +14,10 @@ Do **not** explore the rest of the repo. Open a shared file only when you need i
 Next.js 15 App Router + TS · React 19 · Tailwind v4 · shadcn/ui (radix) in `src/components/ui` · Prisma 6 + PostgreSQL (Neon) · Zod 3 · react-hook-form · bcryptjs + jose · Nodemailer (Ethereal fallback) · GSAP + @gsap/react · sonner toasts · date-fns · lucide-react.
 
 ## Commands
-`npm run dev -- -p <your port>` · `npm run typecheck` · `npm run build` · `npm run seed` · `npm run seed:bulk` · `npx prisma studio`
+All sessions share ONE folder (`D:\odoo-hackathon`) — file ownership below keeps us apart.
+- Your dev server: `npm run dev:a` (3001) / `dev:b` (3002) / `dev:c` (3003) / `dev:d` (3004) — each has its own build dir. Main uses `npm run dev` (3000).
+- Check your work: `npm run typecheck`, `npm run lint`.
+- **Main only**: `npm install`, `npm run build`, `npx prisma migrate/generate`, `npm run seed`, `npm run seed:bulk`. The DB (Neon) is shared and already seeded — don't wipe it.
 Seed logins (password **Brightloop@123**): `admin@brightloop.test`, `staff@brightloop.test`, `customer@brightloop.test`.
 
 ## File ownership (HARD RULE)
@@ -64,5 +67,11 @@ Use only `src/components/motion`: `<FadeIn>`, `<Stagger>` (wrap a DataTable/Stat
 - Read signatures, not whole libraries. Skip exploring `node_modules` / shadcn sources unless an import fails.
 - Run `npm run typecheck` at milestones, not after every edit. Replies: short status lines.
 
-## Git
-You work in your own worktree/branch. Commit at each checklist milestone: `feat(<module>): <what>` (end message with the Co-Authored-By line if configured). Never commit `.env`. Never rebase/merge other branches — Main merges.
+## Git — the USER commits, never Claude
+- Never run `git commit`, `git push`, `git checkout`, `git stash`, `git reset`, `git add` or any branch command. Read-only git (`status`, `diff`) is fine.
+- After each build item, end your reply with a **Suggested commit** block the user can run, listing only your own files/folders:
+  ```bash
+  git add "src/app/(app)/products" src/lib/validators/catalog.ts
+  git commit -m "feat(catalog): products with variants"
+  ```
+- Never include `.env` or other sessions' files.

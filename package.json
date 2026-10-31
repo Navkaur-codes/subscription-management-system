@@ -13,7 +13,11 @@
     "db:studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
     "seed:bulk": "cross-env SEED_BULK=5000 tsx prisma/seed.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "dev:a": "cross-env NEXT_DIST_DIR=.next-a next dev -p 3001",
+    "dev:b": "cross-env NEXT_DIST_DIR=.next-b next dev -p 3002",
+    "dev:c": "cross-env NEXT_DIST_DIR=.next-c next dev -p 3003",
+    "dev:d": "cross-env NEXT_DIST_DIR=.next-d next dev -p 3004"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

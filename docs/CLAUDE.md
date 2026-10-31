@@ -13,22 +13,22 @@
 ## Timeline
 | Phase | Window | Status |
 |---|---|---|
-| 0 Foundation (Main) | T+0:00 → 0:45 | in progress |
-| 1 Parallel build (A, B, C, D) | T+0:45 → 2:30 | pending |
+| 0 Foundation (Main) | T+0:00 → 0:45 | done |
+| 1 Parallel build (A, B, C, D) | T+0:45 → 2:30 | running |
 | 2 Merge & integrate (Main) | T+2:30 → 3:00 | pending |
 | 3 Testing & polish | T+3:00 → 5:00 | pending |
 | 4 Demo script + video | T+5:00 → 7:00 | pending |
 | 5 Buffer & submit | T+7:00 → 8:00 | pending |
 
 ## Sessions board
-| Session | Scope | Branch | Port | Model | Status |
+| Session | Scope | Folder | Port | Model | Status |
 |---|---|---|---|---|---|
-| A | Catalog: products+variants, plans, taxes, discounts, templates | feat/catalog | 3001 | Sonnet | not started |
-| B | Subscriptions: CRUD, template prefill, lifecycle, auto-close | feat/subscriptions | 3002 | Opus | not started |
-| C | Invoices: generation, bulk billing, send/print, payments | feat/billing | 3003 | Opus | not started |
-| D | Dashboard, reports, customers, team, customer portal | feat/insights-portal | 3004 | Sonnet | not started |
+| A | Catalog: products+variants, plans, taxes, discounts, templates | shared | 3001 | Sonnet | running |
+| B | Subscriptions: CRUD, template prefill, lifecycle, auto-close | shared | 3002 | Opus | running |
+| C | Invoices: generation, bulk billing, send/print, payments | shared | 3003 | Opus | running |
+| D | Dashboard, reports, customers, team, customer portal | shared | 3004 | Sonnet | running |
 
-Merge order in Phase 2: A → D → B → C (catalog & customers first; billing last since it depends on subscription data).
+Phase 2 = integration in place (no merges): run full typecheck/build, fix seams, bulk seed, click-through.
 
 ## Phase 0 — delivered
 - Next.js scaffold, shadcn components, monochrome theme tokens (`globals.css`)
@@ -47,6 +47,10 @@ Merge order in Phase 2: A → D → B → C (catalog & customers first; billing 
 
 ## Progress log
 - T+0:00 Phase 0 started.
+- Phase 0 code committed (`phase0` tag): typecheck, lint, build all green.
+- Neon migrated (`init`), seeded; admin login → dashboard verified in browser.
+- Workflow change (user request): **user does all git commits**. No worktrees/branches — all sessions share one folder, separated by file ownership; each session runs its own dev server with a separate build dir (`npm run dev:a…d`) and ends each milestone with a suggested commit block.
+- Phase 1 launched: A, B, C, D.
 
 ## Open requests from sessions
 (none)

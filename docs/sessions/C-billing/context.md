@@ -1,6 +1,6 @@
 # Session C — Invoices, billing day & payments
 
-**Branch** `feat/billing` · **Dev port** 3003 · **Model** Opus · **Timebox** 1h45m (T+0:45 → T+2:30)
+**Folder** shared `D:/odoo-hackathon` · **Dev** port 3003 (`npm run dev:c`) · **Model** Opus · **Timebox** 1h45m (T+0:45 → T+2:30)
 
 ## Goal
 No invoice is typed by hand: invoices are generated from subscriptions (customer, lines, taxes, discounts, totals prefilled), billed exactly once per period, moved Draft → Confirmed → Paid, sent/printed, and payments recorded against them so paid vs outstanding vs overdue is always visible.
@@ -8,7 +8,7 @@ No invoice is typed by hand: invoices are generated from subscriptions (customer
 ## You own
 `src/app/(app)/{invoices,payments}/**`, `src/lib/billing/**`, `src/lib/validators/billing.ts`, `src/components/billing/**`
 
-## Build (in order, commit after each)
+## Build (in order; suggested commit after each)
 1. **Generator** `src/lib/billing/generate.ts`:
    - `generateInvoiceForSubscription(subscriptionId, tx?)`: load sub (status must be ACTIVE, nextInvoiceDate not null) with lines (+product name, variant), plan, customer, discount(+products). Period = `periodRange(sub.nextInvoiceDate, plan.billingPeriod)`. Price with `priceLines(lines→{productId,quantity,unitPrice,taxRate}, discountRule, periodStart)`. In ONE `db.$transaction`: `nextNumber("INV", tx)`, create Invoice (status DRAFT, invoiceDate today, dueDate = today + sub.paymentTerms days, period, totals, discountId if applied) + InvoiceLines (description = product name + variant), increment `discount.usedCount` if applied, set `sub.nextInvoiceDate = periodEnd`. If `periodStart` already invoiced → unique constraint (P2002) → treat as "already billed" (skip, no error). Don't bill past `expiryDate`.
    - `generateDueInvoices()`: all ACTIVE subs with `nextInvoiceDate <= endOfToday` (batched, e.g. 200 at a time) → loop generator; returns `{created, skipped, total}`. Loop per sub while nextInvoiceDate still ≤ today (catch-up), max 12 per sub.

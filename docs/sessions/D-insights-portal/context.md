@@ -1,6 +1,6 @@
 # Session D — Dashboard, reports, customers, team & customer portal
 
-**Branch** `feat/insights-portal` · **Dev port** 3004 · **Model** Sonnet · **Timebox** 1h45m (T+0:45 → T+2:30)
+**Folder** shared `D:/odoo-hackathon` · **Dev** port 3004 (`npm run dev:d`) · **Model** Sonnet · **Timebox** 1h45m (T+0:45 → T+2:30)
 
 ## Goal
 The finance lead sees active subscriptions, revenue, payments and overdue invoices in one place with filters and a summary, every page < 2s with thousands of rows. Staff manage customers; admin adds staff. Customers self-serve through a portal showing only their own data.
@@ -8,7 +8,7 @@ The finance lead sees active subscriptions, revenue, payments and overdue invoic
 ## You own
 `src/app/(app)/{dashboard,reports,customers,users}/**`, `src/app/portal/{page.tsx,subscriptions,invoices}/**`, `src/lib/insights/**`, `src/lib/validators/{customer,user}.ts`, `src/components/insights/**`
 
-## Build (in order, commit after each)
+## Build (in order; suggested commit after each)
 1. **Customers** `/customers` (list: name, company, email, city, #active subs, outstanding; search) → `/customers/new`, `/customers/[id]` (edit form: name, email unique, phone, company, address, city, gstin + read-only tabs/sections: subscriptions, invoices with status, total paid, outstanding). ADMIN/STAFF. **Build this first — B's form links to /customers/new.**
 2. **Team members** `/users` — ADMIN only: list users with role STAFF/ADMIN (name, email, role, active, created). "Add staff member" Sheet: name, email, temp password (use `passwordSchema` from `@/lib/validators/auth`), role STAFF (or ADMIN). Activate/deactivate (can't deactivate yourself). Customers' accounts are not managed here.
 3. **Dashboard** `/dashboard` — `src/lib/insights/metrics.ts` using few aggregate queries (`count`, `aggregate`, `groupBy`; run in `Promise.all`):

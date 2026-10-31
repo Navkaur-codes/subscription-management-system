@@ -1,6 +1,6 @@
 # Session A — Catalog & Admin configuration
 
-**Branch** `feat/catalog` · **Dev port** 3001 · **Model** Sonnet · **Timebox** 1h45m (T+0:45 → T+2:30)
+**Folder** shared `D:/odoo-hackathon` · **Dev** port 3001 (`npm run dev:a`) · **Model** Sonnet · **Timebox** 1h45m (T+0:45 → T+2:30)
 
 ## Goal
 Admin sets up everything the business sells: products (with variants), plans, taxes, discounts, quotation templates. Staff can view all of it, only ADMIN can create/edit/delete.
@@ -8,7 +8,7 @@ Admin sets up everything the business sells: products (with variants), plans, ta
 ## You own
 `src/app/(app)/{products,plans,taxes,discounts,templates}/**`, `src/lib/validators/catalog.ts`, `src/components/catalog/**`
 
-## Build (in this order, commit after each)
+## Build (in this order; suggested commit after each)
 1. **Taxes** `/taxes` — table (name, rate %, active) + create/edit in a `Sheet`; toggle active. Delete only if unused (else deactivate).
 2. **Products** `/products` (list: name, type, sales price, cost price, #variants, taxes, active; search `q`, filter type) → `/products/new`, `/products/[id]` (one form page for create/edit):
    - fields: name, type (SERVICE/GOODS), salesPrice, costPrice, notes, taxes (checkbox list of active taxes), isActive

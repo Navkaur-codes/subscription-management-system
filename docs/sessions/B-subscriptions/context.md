@@ -1,6 +1,6 @@
 # Session B — Subscriptions & lifecycle
 
-**Branch** `feat/subscriptions` · **Dev port** 3002 · **Model** Opus · **Timebox** 1h45m (T+0:45 → T+2:30)
+**Folder** shared `D:/odoo-hackathon` · **Dev** port 3002 (`npm run dev:b`) · **Model** Opus · **Timebox** 1h45m (T+0:45 → T+2:30)
 
 ## Goal
 Sales/staff create subscriptions (from scratch or a quotation template), move them through Draft → Quotation → Confirmed → Active → Closed (with pause/renew per plan rules), and everyone can see where each one stands.
@@ -8,7 +8,7 @@ Sales/staff create subscriptions (from scratch or a quotation template), move th
 ## You own
 `src/app/(app)/subscriptions/**`, `src/lib/subscriptions/**`, `src/lib/validators/subscription.ts`, `src/components/subscriptions/**`
 
-## Build (in order, commit after each)
+## Build (in order; suggested commit after each)
 1. **List** `/subscriptions` — columns: number, customer, plan, status (StatusBadge), start, next invoice, expiry, recurring total (sum of line amounts incl. tax via `priceLines`… or simpler: sum `amount` × (1+taxRate) — use `priceLines` on the lines). Filters: `FilterTabs` status (All/Draft/Quotation/Confirmed/Active/Paused/Closed), `SearchInput` (number or customer name), plan select. Server-side pagination (must be fast with 5,000 rows — select only needed columns, use indexes on status/customerId/planId). Header actions: "New subscription", "Close expired" (ActionButton with confirm → `closeExpiredSubscriptions()`).
 2. **Create/edit form** `/subscriptions/new` and `/subscriptions/[id]/edit` (edit allowed only in DRAFT/QUOTATION):
    - customer (select / searchable via Command popover; link "Add customer" → `/customers/new`), plan (only active plans whose availability window includes today), startDate (default today), expiryDate (default start + 12 periods, or 1 year for yearly), paymentTerms (days, default 15), discount (optional select of active discounts — show `discountReason` hint if not applicable), notes.
