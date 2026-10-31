@@ -6,12 +6,12 @@ import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 import { PAGE_SIZE, pageParams } from "@/lib/action";
 import { formatDate, formatMoney, round2, toNum } from "@/lib/format";
-import { dateFilter, formatRupees, str } from "@/lib/billing/filters";
+import { dateFilter, str } from "@/lib/billing/filters";
 import { METHOD_LABEL, PAYMENT_METHODS } from "@/lib/validators/billing";
 import { ChartCard, PageHeader } from "@/components/shared/page-header";
 import { DataTable, EmptyState, type Column } from "@/components/shared/data-table";
 import { FilterTabs, Pagination, SearchInput, Toolbar } from "@/components/shared/list-controls";
-import { KpiCard } from "@/components/shared/stat-card";
+import { KpiCard, KpiStrip } from "@/components/shared/stat-card";
 import { AvatarName } from "@/components/shared/display";
 import { Stagger } from "@/components/motion";
 import { DateRange } from "@/components/billing/date-range";
@@ -104,28 +104,34 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
     .filter((d) => d.value > 0)
     .sort((a, b) => b.value - a.value);
   const top = methods[0];
+  const filtered = Boolean(method || paymentDate || q);
 
   return (
     <div className="space-y-8">
       <PageHeader eyebrow="Billing / 04" icon={Wallet} title="Payments" description="Every payment recorded against an invoice. Register new payments from the invoice." />
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Stagger className="grid gap-6 sm:grid-cols-2 lg:col-span-2">
-          <KpiCard label="Collected this month" value={<span className="font-mono-num">{formatRupees(current)}</span>} icon={Banknote} delta={delta} deltaLabel="vs last month" trend={trend} tone="success" />
-          <KpiCard label="Payments this month" value={<span className="font-mono-num">{monthCount.toLocaleString("en-IN")}</span>} icon={Hash} tone="info" />
-          <KpiCard label="Received (current filter)" value={<span className="font-mono-num">{formatRupees(totalAll)}</span>} icon={Wallet} tone="brand" deltaLabel={`${count.toLocaleString("en-IN")} payments`} />
+      <Stagger>
+        <KpiStrip>
+          <KpiCard label="Collected this month" numeric={{ value: current, format: "compact-money" }} icon={Banknote} delta={delta} deltaLabel="vs last month" trend={trend} tone="success" />
+          <KpiCard label="Payments this month" numeric={{ value: monthCount, format: "number" }} icon={Hash} deltaLabel={`since ${formatDate(thisMonth)}`} />
           <KpiCard
-            label="Top method"
-            value={top ? top.name : "—"}
-            icon={CreditCard}
-            tone="warning"
-            deltaLabel={top && totalAll > 0 ? `${Math.round((top.value / totalAll) * 100)}% of amount` : undefined}
+            label={filtered ? "Received in view" : "Received, all time"}
+            numeric={{ value: totalAll, format: "compact-money" }}
+            icon={Wallet}
+            deltaLabel={`${count.toLocaleString("en-IN")} payments`}
           />
-        </Stagger>
-        <ChartCard title="By method" description="Share of amount received, current filter">
-          <MethodBreakdown rows={methods} total={totalAll} />
-        </ChartCard>
-      </div>
+          <KpiCard
+            label="Average payment"
+            numeric={{ value: count > 0 ? totalAll / count : 0, format: "compact-money" }}
+            icon={CreditCard}
+            deltaLabel={top && totalAll > 0 ? `${top.name} leads · ${Math.round((top.value / totalAll) * 100)}%` : undefined}
+          />
+        </KpiStrip>
+      </Stagger>
+
+      <ChartCard title="By method" description={filtered ? "Share of amount received in the current view" : "Share of all amount received"}>
+        <MethodBreakdown rows={methods} total={totalAll} />
+      </ChartCard>
 
       <div>
         <div className="mb-3 max-w-full overflow-x-auto [scrollbar-width:none]">

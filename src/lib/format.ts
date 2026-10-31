@@ -25,6 +25,17 @@ export function formatMoney(v: DecimalLike): string {
   return inr.format(toNum(v));
 }
 
+/** Indian compact money: ₹10.07 Cr, ₹4.32 L, ₹73.8K, ₹950. Server-safe. */
+export function formatCompactMoney(v: DecimalLike): string {
+  const n = toNum(v);
+  const a = Math.abs(n);
+  const s = n < 0 ? "−" : "";
+  if (a >= 1e7) return `${s}₹${(a / 1e7).toFixed(2)} Cr`;
+  if (a >= 1e5) return `${s}₹${(a / 1e5).toFixed(2)} L`;
+  if (a >= 1e3) return `${s}₹${(a / 1e3).toFixed(1)}K`;
+  return `${s}₹${Math.round(a)}`;
+}
+
 /** 31 Oct 2026 */
 export function formatDate(d: Date | string | null | undefined): string {
   if (!d) return "—";
