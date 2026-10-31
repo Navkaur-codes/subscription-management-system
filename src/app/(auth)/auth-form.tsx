@@ -40,10 +40,10 @@ export function AuthForm({
         </FormField>
       ))}
       {state.error && (
-        <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">{state.error}</p>
+        <p className="rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm text-danger ring-1 ring-current/15 ring-inset">{state.error}</p>
       )}
       {state.success && (
-        <div className="rounded-lg border bg-muted/50 px-3 py-2 text-sm">
+        <div className="rounded-xl bg-success-soft px-3.5 py-2.5 text-sm text-foreground ring-1 ring-success/20 ring-inset">
           {state.success}
           {state.previewUrl && (
             <a href={state.previewUrl} target="_blank" rel="noreferrer" className="mt-1 block font-medium text-brand underline-offset-4 hover:underline">
@@ -52,20 +52,20 @@ export function AuthForm({
           )}
         </div>
       )}
-      <Button type="submit" disabled={pending} className="mt-1 w-full">
+      <Button type="submit" size="lg" disabled={pending} className="mt-2 w-full">
         {pending && <Loader2 className="size-4 animate-spin" />}
         {submitLabel}
       </Button>
-      {footer && <div className="text-center text-sm text-muted-foreground">{footer}</div>}
+      {footer && <div className="mt-2 text-center text-sm text-muted-foreground [&_a]:text-brand">{footer}</div>}
     </form>
   );
 }
 
 export function AuthHeading({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <div className="mb-6">
-      <h1 className="text-2xl font-semibold">{title}</h1>
-      <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+    <div className="mb-8">
+      <h1 className="text-[28px] leading-9 font-semibold tracking-tight">{title}</h1>
+      <p className="mt-1.5 text-sm text-muted-foreground">{subtitle}</p>
     </div>
   );
 }

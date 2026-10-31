@@ -106,6 +106,43 @@ export function CountUp({
   );
 }
 
+/** Slow, gentle vertical float for decorative cards (auth hero). Pauses under reduced motion. */
+export function Float({
+  children,
+  amplitude = 10,
+  duration = 4,
+  delay = 0,
+  className,
+}: {
+  children: ReactNode;
+  amplitude?: number;
+  duration?: number;
+  delay?: number;
+  className?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useGSAP(
+    () => {
+      if (reduced()) return;
+      gsap.from(ref.current, { opacity: 0, y: 24, duration: 0.6, delay, ease: "power3.out" });
+      gsap.to(ref.current, {
+        y: -amplitude,
+        duration,
+        delay: delay + 0.6,
+        ease: "sine.inOut",
+        yoyo: true,
+        repeat: -1,
+      });
+    },
+    { scope: ref }
+  );
+  return (
+    <div ref={ref} className={className}>
+      {children}
+    </div>
+  );
+}
+
 /** Brief scale pulse when `trigger` changes (e.g. status badge after a transition). */
 export function Pulse({ trigger, children }: { trigger: unknown; children: ReactNode }) {
   const ref = useRef<HTMLSpanElement>(null);

@@ -4,82 +4,121 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Brightloop design tokens — monochrome zinc base, ONE restrained indigo accent.
- * Never use raw Tailwind palette colours (bg-blue-500, text-green-600 …) in pages.
- * Use these tokens via bg-background, text-muted-foreground, border-border, bg-primary, text-accent-brand …
+ * Brightloop design tokens — v2 "Premium SaaS" (see docs/DESIGN.md).
+ * Neutral greys for UI, ONE violet→indigo brand gradient, status colour only via <StatusBadge>,
+ * chart colour only via --chart-1..6. Never use raw Tailwind palette colours in pages.
  */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(0.985 0 0);
-  --foreground: oklch(0.21 0.006 285.885);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21 0.006 285.885);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0.006 285.885);
-  --primary: oklch(0.21 0.006 285.885);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.457 0.24 277.023);
-  /* single brand accent (indigo-700-ish) — focus, active nav, links */
-  --brand: oklch(0.457 0.24 277.023);
-  --brand-foreground: oklch(0.985 0 0);
-  --brand-soft: oklch(0.962 0.018 272.314);
-  /* status dot colours — ONLY for the small dot inside StatusBadge */
-  --dot-neutral: oklch(0.705 0.015 286.067);
-  --dot-info: oklch(0.585 0.233 277.117);
-  --dot-success: oklch(0.627 0.17 149.214);
-  --dot-warning: oklch(0.705 0.16 70.08);
-  --dot-danger: oklch(0.577 0.245 27.325);
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --chart-1: oklch(0.21 0.006 285.885);
-  --chart-2: oklch(0.457 0.24 277.023);
-  --chart-3: oklch(0.705 0.015 286.067);
-  --chart-4: oklch(0.871 0.006 286.286);
-  --chart-5: oklch(0.552 0.016 285.938);
+  --radius: 0.75rem;
+  --canvas: #f7f7fb;
+  --background: #f7f7fb;
+  --foreground: oklch(0.2 0.02 285);
+  --card: #ffffff;
+  --card-foreground: oklch(0.2 0.02 285);
+  --popover: #ffffff;
+  --popover-foreground: oklch(0.2 0.02 285);
+  --primary: #5b3ee6;
+  --primary-foreground: #ffffff;
+  --secondary: oklch(0.965 0.005 285);
+  --secondary-foreground: oklch(0.2 0.02 285);
+  --muted: oklch(0.965 0.005 285);
+  --muted-foreground: oklch(0.52 0.02 285);
+  --accent: oklch(0.955 0.012 285);
+  --accent-foreground: oklch(0.2 0.02 285);
+  --destructive: #e11d48;
+  --border: oklch(0.915 0.008 285);
+  --input: oklch(0.9 0.01 285);
+  --ring: #6d4aff;
+  --ring-subtle: rgb(15 15 40 / 0.06);
+
+  /* brand */
+  --brand-from: #7c3aed;
+  --brand-to: #4f46e5;
+  --brand: #5b3ee6;
+  --brand-foreground: #ffffff;
+  --brand-soft: #efebff;
+
+  /* depth */
+  --shadow-card: 0 1px 2px rgb(16 16 40 / 0.04), 0 2px 6px -1px rgb(16 16 40 / 0.05), 0 12px 24px -12px rgb(16 16 40 / 0.08);
+  --shadow-card-hover: 0 2px 4px rgb(16 16 40 / 0.05), 0 8px 16px -4px rgb(16 16 40 / 0.08), 0 24px 40px -16px rgb(76 50 220 / 0.18);
+
+  /* status (strong / soft tint) */
+  --success: #059669;
+  --success-soft: rgb(16 185 129 / 0.1);
+  --warning: #b45309;
+  --warning-soft: rgb(245 158 11 / 0.12);
+  --info: #0284c7;
+  --info-soft: rgb(14 165 233 / 0.1);
+  --danger: #e11d48;
+  --danger-soft: rgb(244 63 94 / 0.1);
+  --neutral: oklch(0.5 0.015 285);
+  --neutral-soft: oklch(0.5 0.015 285 / 0.1);
+  /* legacy dot tokens (kept for existing code) */
+  --dot-neutral: oklch(0.7 0.015 285);
+  --dot-info: #0ea5e9;
+  --dot-success: #10b981;
+  --dot-warning: #f59e0b;
+  --dot-danger: #f43f5e;
+
+  /* dark ink sidebar — dark in BOTH themes */
+  --sidebar: #0d0c16;
+  --sidebar-foreground: #ecebf5;
+  --sidebar-muted: #8f8da6;
+  --sidebar-border: rgb(255 255 255 / 0.07);
+  --sidebar-accent: rgb(255 255 255 / 0.07);
+
+  /* charts */
+  --chart-1: #7c3aed;
+  --chart-2: #4f46e5;
+  --chart-3: #0ea5e9;
+  --chart-4: #10b981;
+  --chart-5: #f59e0b;
+  --chart-6: #f43f5e;
 }
 
 .dark {
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.92 0.004 286.32);
-  --primary-foreground: oklch(0.21 0.006 285.885);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.673 0.182 276.935);
-  --brand: oklch(0.673 0.182 276.935);
-  --brand-foreground: oklch(0.141 0.005 285.823);
-  --brand-soft: oklch(0.257 0.09 281.288);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
+  --canvas: #09090b;
+  --background: #09090b;
+  --foreground: oklch(0.97 0.004 285);
+  --card: #131219;
+  --card-foreground: oklch(0.97 0.004 285);
+  --popover: #16151d;
+  --popover-foreground: oklch(0.97 0.004 285);
+  --primary: #8b6cff;
+  --primary-foreground: #ffffff;
+  --secondary: oklch(0.26 0.01 285);
+  --secondary-foreground: oklch(0.97 0.004 285);
+  --muted: oklch(0.24 0.01 285);
+  --muted-foreground: oklch(0.7 0.015 285);
+  --accent: oklch(0.26 0.015 285);
+  --accent-foreground: oklch(0.97 0.004 285);
+  --destructive: #fb7185;
+  --border: rgb(255 255 255 / 0.08);
+  --input: rgb(255 255 255 / 0.12);
+  --ring: #8b6cff;
+  --ring-subtle: rgb(255 255 255 / 0.08);
+  --brand: #8b6cff;
+  --brand-soft: rgb(124 58 237 / 0.16);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 24px -12px rgb(0 0 0 / 0.6);
+  --shadow-card-hover: 0 2px 4px rgb(0 0 0 / 0.5), 0 24px 40px -16px rgb(124 58 237 / 0.3);
+  --success: #34d399;
+  --success-soft: rgb(16 185 129 / 0.14);
+  --warning: #fbbf24;
+  --warning-soft: rgb(245 158 11 / 0.14);
+  --info: #38bdf8;
+  --info-soft: rgb(14 165 233 / 0.14);
+  --danger: #fb7185;
+  --danger-soft: rgb(244 63 94 / 0.14);
+  --neutral: oklch(0.75 0.015 285);
+  --neutral-soft: rgb(255 255 255 / 0.07);
+  --sidebar: #0a0910;
+  --sidebar-border: rgb(255 255 255 / 0.06);
 }
 
 @theme inline {
   --font-sans: var(--font-inter);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --color-canvas: var(--canvas);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -98,9 +137,22 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-ring-subtle: var(--ring-subtle);
   --color-brand: var(--brand);
+  --color-brand-from: var(--brand-from);
+  --color-brand-to: var(--brand-to);
   --color-brand-foreground: var(--brand-foreground);
   --color-brand-soft: var(--brand-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-neutral: var(--neutral);
+  --color-neutral-soft: var(--neutral-soft);
   --color-dot-neutral: var(--dot-neutral);
   --color-dot-info: var(--dot-info);
   --color-dot-success: var(--dot-success);
@@ -108,6 +160,7 @@
   --color-dot-danger: var(--dot-danger);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-muted: var(--sidebar-muted);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent: var(--sidebar-accent);
   --color-chart-1: var(--chart-1);
@@ -115,15 +168,25 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 6px);
+  --shadow-card: var(--shadow-card);
+  --shadow-card-hover: var(--shadow-card-hover);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
   }
   body {
     @apply bg-background text-foreground antialiased;
@@ -134,9 +197,56 @@
   }
 }
 
+@utility bg-brand-gradient {
+  background-image: linear-gradient(135deg, var(--brand-from), var(--brand-to));
+}
+
+@utility text-brand-gradient {
+  background-image: linear-gradient(135deg, var(--brand-from), var(--brand-to));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility card-surface {
+  background-color: var(--card);
+  border-radius: calc(var(--radius) + 6px);
+  box-shadow: var(--shadow-card), 0 0 0 1px var(--ring-subtle);
+}
+
+@utility card-hover {
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-hover), 0 0 0 1px var(--ring-subtle);
+  }
+}
+
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+@utility eyebrow {
+  font-size: 11px;
+  line-height: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-foreground);
+}
+
 /* Money & numbers line up in tables */
 .num {
   font-variant-numeric: tabular-nums;
+}
+
+/* Thin, quiet scrollbars inside the dark sidebar */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.12) transparent;
 }
 
 /* GSAP targets start hidden only when JS + motion allowed (set by <FadeIn>/<Stagger>) */

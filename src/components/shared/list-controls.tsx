@@ -55,14 +55,15 @@ export function FilterTabs({
   const { sp, set } = useQueryParams();
   const current = sp.get(param) ?? "";
   return (
-    <div className="inline-flex rounded-lg border bg-card p-0.5">
+    <div className="inline-flex max-w-full overflow-x-auto [scrollbar-width:none] rounded-full bg-muted/80 p-1 ring-1 ring-border/60 ring-inset">
       {options.map((o) => (
         <button
           key={o.value}
+          type="button"
           onClick={() => set({ [param]: o.value })}
           className={cn(
-            "rounded-md px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground",
-            current === o.value && "bg-muted text-foreground"
+            "rounded-full px-3.5 py-1.5 text-xs font-medium whitespace-nowrap text-muted-foreground transition-all hover:text-foreground",
+            current === o.value && "bg-card text-foreground shadow-sm ring-1 ring-ring-subtle"
           )}
         >
           {o.label}
@@ -74,7 +75,7 @@ export function FilterTabs({
 
 /** Row above a table holding search + filters. */
 export function Toolbar({ children }: { children: ReactNode }) {
-  return <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">{children}</div>;
+  return <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">{children}</div>;
 }
 
 /** Prev/next pagination with "x–y of total". */
@@ -90,7 +91,7 @@ export function Pagination({ page, pageSize, total }: { page: number; pageSize: 
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, total);
   return (
-    <div className="mt-3 flex items-center justify-between text-sm text-muted-foreground">
+    <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
       <span className="num">
         {from}–{to} of {total.toLocaleString("en-IN")}
       </span>
