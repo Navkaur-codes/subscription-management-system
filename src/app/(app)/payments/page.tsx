@@ -13,9 +13,9 @@ import { DataTable, EmptyState, type Column } from "@/components/shared/data-tab
 import { FilterTabs, Pagination, SearchInput, Toolbar } from "@/components/shared/list-controls";
 import { KpiCard } from "@/components/shared/stat-card";
 import { AvatarName } from "@/components/shared/display";
-import { Donut } from "@/components/shared/charts";
 import { Stagger } from "@/components/motion";
 import { DateRange } from "@/components/billing/date-range";
+import { MethodBreakdown } from "@/components/billing/method-breakdown";
 
 export const metadata = { title: "Payments" };
 
@@ -39,7 +39,7 @@ const columns: Column<Row>[] = [
     key: "invoice",
     header: "Invoice",
     cell: (r) => (
-      <Link href={`/invoices/${r.invoice.id}`} className="font-medium hover:text-brand hover:underline">
+      <Link href={`/invoices/${r.invoice.id}`} className="font-mono-num hover:text-ember hover:underline">
         {r.invoice.number}
       </Link>
     ),
@@ -51,7 +51,7 @@ const columns: Column<Row>[] = [
     cell: (r) => [r.reference, r.note].filter(Boolean).join(" · ") || "—",
     className: "hidden max-w-56 truncate text-muted-foreground md:table-cell",
   },
-  { key: "amount", header: "Amount", align: "right", cell: (r) => <span className="font-medium">{formatMoney(r.amount)}</span> },
+  { key: "amount", header: "Amount", align: "right", cell: (r) => <span className="font-mono-num font-medium">{formatMoney(r.amount)}</span> },
 ];
 
 export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -99,21 +99,21 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
   const previous = trend[trend.length - 2];
   const delta = previous > 0 ? round2(((current - previous) / previous) * 100) : undefined;
   const totalAll = toNum(sum._sum.amount ?? 0);
-  const donut = byMethod
+  const methods = byMethod
     .map((b) => ({ name: METHOD_LABEL[b.method], value: toNum(b._sum.amount ?? 0) }))
     .filter((d) => d.value > 0)
     .sort((a, b) => b.value - a.value);
-  const top = donut[0];
+  const top = methods[0];
 
   return (
     <div className="space-y-8">
-      <PageHeader eyebrow="Billing" icon={Wallet} title="Payments" description="Every payment recorded against an invoice. Register new payments from the invoice." />
+      <PageHeader eyebrow="Billing / 04" icon={Wallet} title="Payments" description="Every payment recorded against an invoice. Register new payments from the invoice." />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Stagger className="grid gap-6 sm:grid-cols-2 lg:col-span-2">
-          <KpiCard label="Collected this month" value={formatRupees(current)} icon={Banknote} delta={delta} deltaLabel="vs last month" trend={trend} tone="success" />
-          <KpiCard label="Payments this month" value={monthCount.toLocaleString("en-IN")} icon={Hash} tone="info" />
-          <KpiCard label="Received (current filter)" value={formatRupees(totalAll)} icon={Wallet} tone="brand" deltaLabel={`${count.toLocaleString("en-IN")} payments`} />
+          <KpiCard label="Collected this month" value={<span className="font-mono-num">{formatRupees(current)}</span>} icon={Banknote} delta={delta} deltaLabel="vs last month" trend={trend} tone="success" />
+          <KpiCard label="Payments this month" value={<span className="font-mono-num">{monthCount.toLocaleString("en-IN")}</span>} icon={Hash} tone="info" />
+          <KpiCard label="Received (current filter)" value={<span className="font-mono-num">{formatRupees(totalAll)}</span>} icon={Wallet} tone="brand" deltaLabel={`${count.toLocaleString("en-IN")} payments`} />
           <KpiCard
             label="Top method"
             value={top ? top.name : "—"}
@@ -122,12 +122,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
             deltaLabel={top && totalAll > 0 ? `${Math.round((top.value / totalAll) * 100)}% of amount` : undefined}
           />
         </Stagger>
-        <ChartCard title="By method" description="Share of amount received">
-          {donut.length ? (
-            <Donut data={donut} format="money" centerLabel="Total" centerValue={formatRupees(totalAll)} />
-          ) : (
-            <p className="py-16 text-center text-sm text-muted-foreground">No payments yet</p>
-          )}
+        <ChartCard title="By method" description="Share of amount received, current filter">
+          <MethodBreakdown rows={methods} total={totalAll} />
         </ChartCard>
       </div>
 

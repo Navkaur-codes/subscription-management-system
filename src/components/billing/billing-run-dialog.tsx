@@ -2,10 +2,23 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { CalendarClock, Loader2, Play, Receipt, Sparkles } from "lucide-react";
+import { Loader2, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { formatMoney } from "@/lib/format";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Magnetic,
+  Orbit,
+  RevealText,
+  ScrambleNumber,
+} from "@/components/motion";
+import { formatDate } from "@/lib/format";
 import type { ActionResult } from "@/lib/action";
 import type { BillingPreview } from "@/lib/billing/preview";
 
@@ -14,17 +27,21 @@ type Props = {
   run: () => Promise<ActionResult<{ created: number }>>;
 };
 
-/** "Generate due invoices" with a dry-run preview: how many subs are due and what they will bill. */
+type Done = { created: number; message: string };
+
+/** "Generate due invoices" as a small ceremony: dry-run preview → confirm → counted result. */
 export function BillingRunDialog({ preview, run }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<BillingPreview | null>(null);
+  const [done, setDone] = useState<Done | null>(null);
   const [loading, startLoad] = useTransition();
   const [running, startRun] = useTransition();
 
   const openPreview = () => {
     setOpen(true);
     setData(null);
+    setDone(null);
     startLoad(async () => {
       const res = await preview();
       if (res.ok && res.data) setData(res.data);
@@ -39,8 +56,7 @@ export function BillingRunDialog({ preview, run }: Props) {
     startRun(async () => {
       const res = await run();
       if (!res.ok) return void toast.error(res.error);
-      toast.success(res.message ?? "Billing run complete");
-      setOpen(false);
+      setDone({ created: res.data?.created ?? 0, message: res.message ?? "" });
       router.refresh();
     });
 
@@ -48,53 +64,125 @@ export function BillingRunDialog({ preview, run }: Props) {
 
   return (
     <>
-      <Button onClick={openPreview} className="bg-brand-gradient text-brand-foreground hover:opacity-90">
+      <Button onClick={openPreview}>
         <Play className="size-4" />
         Generate due invoices
       </Button>
       <Dialog open={open} onOpenChange={(o) => !running && setOpen(o)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-brand-gradient text-brand-foreground">
-              <CalendarClock className="size-5" />
-            </div>
-            <DialogTitle>Run billing</DialogTitle>
+            <p className="font-mono-num text-[11px] tracking-wider text-muted-foreground uppercase">
+              Billing run · {formatDate(new Date())}
+            </p>
+            <DialogTitle className="font-display text-3xl leading-tight font-normal sm:text-4xl">
+              {done ? (
+                <>
+                  <em className="text-ember">
+                    <ScrambleNumber value={done.created} format="number" />
+                  </em>{" "}
+                  invoice{done.created === 1 ? "" : "s"} created.
+                </>
+              ) : !data ? (
+                "Counting what’s due…"
+              ) : nothing ? (
+                <RevealText as="span" key="none">
+                  You’re <em>all caught up</em>.
+                </RevealText>
+              ) : (
+                <RevealText as="span" key="due">
+                  <em className="text-ember">
+                    {data.billable.toLocaleString("en-IN")}
+                  </em>{" "}
+                  subscription
+                  {data.billable === 1 ? " is" : "s are"} due today.
+                </RevealText>
+              )}
+            </DialogTitle>
             <DialogDescription>
-              Preview of today&apos;s billing run. Draft invoices are created for every active subscription whose billing date has
-              arrived; periods already billed are skipped.
+              {done
+                ? done.message.includes("still due")
+                  ? done.message
+                  : "They’re waiting under Draft — review and confirm them to start collecting."
+                : nothing
+                  ? "No active subscription has a billing date today or earlier. Check back on the next cycle."
+                  : "Each one gets a draft invoice for its next period. Periods already billed are skipped, so running twice never double-bills."}
             </DialogDescription>
           </DialogHeader>
 
-          {loading || !data ? (
-            <div className="flex h-36 items-center justify-center text-sm text-muted-foreground">
-              <Loader2 className="mr-2 size-4 animate-spin" /> Calculating preview…
+          {!done && (loading || !data) && (
+            <div className="flex h-32 items-center justify-center text-sm text-muted-foreground">
+              <Loader2 className="mr-2 size-4 animate-spin" /> Pricing every due
+              subscription…
             </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="rounded-xl bg-brand-soft p-4">
-                <p className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
-                  Estimated to bill{data.sampled && " (extrapolated)"}
+          )}
+
+          {running && data && (
+            <div className="flex items-center gap-5 border-y py-5">
+              <Orbit size={72} dots={3} speed={4} />
+              <div>
+                <p className="font-display text-2xl">
+                  Billing <em>{data.billable.toLocaleString("en-IN")}</em>{" "}
+                  subscriptions…
                 </p>
-                <p className="num mt-1 text-3xl font-semibold tracking-tight">{formatMoney(data.estimatedTotal)}</p>
-                <p className="mt-1 text-xs text-muted-foreground">First due period per subscription, incl. tax and auto-discounts</p>
+                <p className="text-xs text-muted-foreground">
+                  Numbering invoices, applying discounts, advancing billing
+                  dates.
+                </p>
               </div>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <Fact icon={<Receipt className="size-4" />} label="Invoices" value={data.billable} />
-                <Fact icon={<Sparkles className="size-4" />} label="Discounted" value={data.discounted} />
-                <Fact icon={<CalendarClock className="size-4" />} label="Expired, skip" value={data.expired} />
-              </div>
-              {nothing && <p className="text-center text-sm text-muted-foreground">Nothing is due today — you&apos;re all caught up.</p>}
+            </div>
+          )}
+
+          {!done && !running && data && !nothing && (
+            <div className="border-y py-5">
+              <p className="text-xs text-muted-foreground">
+                Estimated to bill{data.sampled && " (extrapolated)"}
+              </p>
+              <ScrambleNumber
+                value={data.estimatedTotal}
+                format="money"
+                className="font-mono-num mt-1 block text-4xl font-medium tracking-tight"
+              />
+              <dl className="mt-4 divide-y text-sm">
+                <Fact label="Auto-discount applied" value={data.discounted} />
+                <Fact label="Expired — will be skipped" value={data.expired} />
+                <Fact
+                  label="Incl. tax · first due period per subscription"
+                  value={null}
+                />
+              </dl>
             </div>
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)} disabled={running}>
-              Cancel
-            </Button>
-            <Button onClick={confirm} disabled={loading || !data || nothing || running}>
-              {running && <Loader2 className="size-4 animate-spin" />}
-              {data && !nothing ? `Create ${data.billable.toLocaleString("en-IN")} invoice${data.billable === 1 ? "" : "s"}` : "Create invoices"}
-            </Button>
+            {done ? (
+              <Button onClick={() => setOpen(false)}>Done</Button>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setOpen(false)}
+                  disabled={running}
+                >
+                  Cancel
+                </Button>
+                {!nothing && (
+                  <Magnetic className="w-full sm:w-auto">
+                    <Button
+                      onClick={confirm}
+                      disabled={loading || !data || running}
+                      className="w-full bg-ember text-white hover:bg-ember/90 sm:w-auto"
+                    >
+                      {running && <Loader2 className="size-4 animate-spin" />}
+                      {running
+                        ? "Billing…"
+                        : data && !nothing
+                          ? `Create ${data.billable.toLocaleString("en-IN")} invoice${data.billable === 1 ? "" : "s"}`
+                          : "Create invoices"}
+                    </Button>
+                  </Magnetic>
+                )}
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -102,12 +190,13 @@ export function BillingRunDialog({ preview, run }: Props) {
   );
 }
 
-function Fact({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
+function Fact({ label, value }: { label: string; value: number | null }) {
   return (
-    <div className="rounded-xl border bg-card p-3">
-      <span className="mx-auto mb-1 flex w-fit text-muted-foreground">{icon}</span>
-      <p className="num text-lg font-semibold">{value.toLocaleString("en-IN")}</p>
-      <p className="text-[11px] text-muted-foreground">{label}</p>
+    <div className="flex items-center justify-between py-2">
+      <dt className="text-muted-foreground">{label}</dt>
+      {value !== null && (
+        <dd className="font-mono-num">{value.toLocaleString("en-IN")}</dd>
+      )}
     </div>
   );
 }

@@ -25,3 +25,6 @@ When the whole acceptance checklist is done: npm run typecheck && npm run lint, 
 
 ## Follow-up (T+~5h) — premium UI redesign
 Main asked: redesign invoices list, invoice detail and payments to `docs/DESIGN.md` v2 using Session E's shared components; add a no-write "Run billing preview" before Generate due invoices; test as staff at 1440×900 and 375×812.
+
+## Follow-up — v3 "Ember Loop"
+Main asked: purge v2 (violet/gradient/glass) from billing pages, mono numbers, billing-run ceremony (serif headline, ScrambleNumber total, Magnetic confirm, counted result), invoice amount due ScrambleNumber + ember progress draw, payments method breakdown as ruled ember list; test 1440/375 light+dark, run billing once.

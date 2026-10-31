@@ -5,45 +5,53 @@ import { formatDate, formatMoney, round2, toNum } from "@/lib/format";
 import { outstanding } from "@/lib/invoice-status";
 import { cn } from "@/lib/utils";
 import { AvatarName } from "@/components/shared/display";
+import { ScrambleNumber } from "@/components/motion";
+import { EmberProgress } from "./ember-progress";
 
 function SideCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl bg-card p-5 shadow-card ring-1 ring-black/5 dark:ring-white/10">
-      <h2 className="mb-4 text-[11px] font-medium tracking-wider text-muted-foreground uppercase">{title}</h2>
+    <section className="rounded-xl border bg-card p-5">
+      <h2 className="font-mono-num mb-4 text-[11px] tracking-wider text-muted-foreground uppercase">{title}</h2>
       {children}
     </section>
   );
 }
 
-/** Paid / total progress with the remaining balance. */
+/** Amount due (scrambles in), ember progress of paid / total, and the settlement state. */
 export function PaymentProgressCard({ invoice }: { invoice: InvoiceWithDoc }) {
   const total = toNum(invoice.total);
   const paid = toNum(invoice.amountPaid);
   const pct = total > 0 ? Math.min(100, round2((paid / total) * 100)) : 0;
   const due = outstanding(invoice);
   const overdue = invoice.status === "CONFIRMED" && due > 0 && invoice.dueDate < new Date();
+  const open = invoice.status === "CONFIRMED";
   return (
-    <SideCard title="Payment">
-      <div className="flex items-baseline justify-between">
-        <p className="num text-2xl font-semibold tracking-tight">{formatMoney(paid)}</p>
-        <p className="num text-sm text-muted-foreground">of {formatMoney(total)}</p>
-      </div>
-      <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-        <div className="h-full rounded-full bg-brand-gradient transition-[width] duration-500" style={{ width: `${pct}%` }} />
-      </div>
-      <div className="mt-3 flex items-center justify-between text-xs">
-        <span className="text-muted-foreground">{pct}% collected</span>
-        {invoice.status === "CANCELLED" ? (
-          <span className="text-muted-foreground">Cancelled</span>
-        ) : invoice.status === "DRAFT" ? (
-          <span className="text-muted-foreground">Confirm to collect</span>
-        ) : due > 0 ? (
-          <span className={cn("num font-medium", overdue && "text-danger")}>
-            {formatMoney(due)} due {overdue ? "— overdue" : formatDate(invoice.dueDate)}
+    <SideCard title="Amount due">
+      <ScrambleNumber
+        value={open ? due : invoice.status === "DRAFT" ? total : 0}
+        format="money"
+        className={cn("font-mono-num block text-3xl font-medium tracking-tight", overdue && "text-danger")}
+      />
+      <p className="mt-1 text-xs text-muted-foreground">
+        {invoice.status === "CANCELLED"
+          ? "Cancelled — nothing to collect"
+          : invoice.status === "DRAFT"
+            ? "Draft — confirm to start collecting"
+            : due > 0
+              ? overdue
+                ? `Overdue since ${formatDate(invoice.dueDate)}`
+                : `Due ${formatDate(invoice.dueDate)}`
+              : `Settled ${invoice.paidAt ? formatDate(invoice.paidAt) : ""}`}
+      </p>
+      <div className="mt-5 border-t pt-4">
+        <div className="mb-2 flex items-baseline justify-between text-xs">
+          <span className="text-muted-foreground">Collected</span>
+          <span className="font-mono-num">
+            {formatMoney(paid)} <span className="text-muted-foreground">/ {formatMoney(total)}</span>
           </span>
-        ) : (
-          <span className="font-medium text-success">Settled {invoice.paidAt ? formatDate(invoice.paidAt) : ""}</span>
-        )}
+        </div>
+        <EmberProgress pct={pct} label="Share of invoice paid" />
+        <p className="font-mono-num mt-2 text-right text-[11px] text-muted-foreground">{pct}%</p>
       </div>
     </SideCard>
   );
@@ -71,10 +79,10 @@ export function CustomerCard({ invoice }: { invoice: InvoiceWithDoc }) {
       {invoice.subscriptionId && invoice.subscription && (
         <Link
           href={`/subscriptions/${invoice.subscriptionId}`}
-          className="mt-4 flex items-center justify-between rounded-xl border px-3 py-2 text-sm transition-colors hover:bg-muted"
+          className="mt-4 flex items-center justify-between border-t pt-3 text-sm transition-colors hover:text-ember"
         >
           <span className="text-muted-foreground">Subscription</span>
-          <span className="font-medium">{invoice.subscription.number}</span>
+          <span className="font-mono-num">{invoice.subscription.number}</span>
         </Link>
       )}
     </SideCard>

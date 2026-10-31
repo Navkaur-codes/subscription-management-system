@@ -68,7 +68,7 @@ function numberCell(r: Row) {
     <span className="flex items-center gap-3">
       <span className={late ? "h-8 w-0.5 rounded-full bg-danger" : "h-8 w-0.5"} aria-hidden />
       <span className="flex flex-col">
-        <span className="font-medium">{r.number}</span>
+        <span className="font-mono-num font-medium">{r.number}</span>
         <span className={late ? "text-xs text-danger" : "text-xs text-muted-foreground"}>
           {late
             ? `${late} day${late === 1 ? "" : "s"} overdue`
@@ -83,13 +83,15 @@ function numberCell(r: Row) {
 
 const columns: Column<Row>[] = [
   { key: "number", header: "Invoice", cell: numberCell },
-  { key: "customer", header: "Customer", cell: (r) => <AvatarName name={r.customer.name} sub={r.subscription?.number} size="sm" /> },
+  { key: "customer", header: "Customer", cell: (r) => <AvatarName name={r.customer.name} sub={r.subscription && <span className="font-mono-num">{r.subscription.number}</span>} size="sm" /> },
   { key: "date", header: "Issued", cell: (r) => formatDate(r.invoiceDate), className: "hidden md:table-cell" },
   { key: "due", header: "Due", cell: (r) => formatDate(r.dueDate), className: "hidden md:table-cell" },
   { key: "status", header: "Status", cell: (r) => <StatusBadge status={displayStatus(r)} /> },
-  { key: "total", header: "Total", align: "right", cell: (r) => formatMoney(r.total) },
-  { key: "outstanding", header: "Balance", align: "right", cell: (r) => formatMoney(outstanding(r)), className: "hidden sm:table-cell" },
+  { key: "total", header: "Total", align: "right", cell: (r) => formatMoney(r.total), className: "font-mono-num" },
+  { key: "outstanding", header: "Balance", align: "right", cell: (r) => formatMoney(outstanding(r)), className: "font-mono-num hidden sm:table-cell" },
 ];
+
+const mono = (v: string) => <span className="font-mono-num">{v}</span>;
 
 type Sums = { _sum: { total: Prisma.Decimal | null; amountPaid: Prisma.Decimal | null } };
 const open = (a: Sums) => round2(toNum(a._sum.total ?? 0) - toNum(a._sum.amountPaid ?? 0));
@@ -134,7 +136,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Billing"
+        eyebrow="Billing / 03"
         icon={FileText}
         title="Invoices"
         description="Generated from subscriptions and billed exactly once per period."
@@ -142,10 +144,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
       />
       <MetricStrip
         items={[
-          { label: "Invoiced", value: formatRupees(billed._sum.total), hint: `${count.toLocaleString("en-IN")} invoices` },
-          { label: "Collected", value: formatRupees(billed._sum.amountPaid) },
-          { label: "Outstanding", value: formatRupees(open(confirmed)) },
-          { label: "Overdue", value: formatRupees(open(overdue)), hint: "Past due date, unpaid" },
+          { label: "Invoiced", value: mono(formatRupees(billed._sum.total)), hint: `${count.toLocaleString("en-IN")} invoices` },
+          { label: "Collected", value: mono(formatRupees(billed._sum.amountPaid)) },
+          { label: "Outstanding", value: mono(formatRupees(open(confirmed))) },
+          { label: "Overdue", value: mono(formatRupees(open(overdue))), hint: "Past due date, unpaid" },
         ]}
       />
       <div>

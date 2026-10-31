@@ -35,7 +35,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
 
   return (
     <div className="space-y-6">
-      <div className="no-print rounded-2xl bg-card p-4 shadow-card ring-1 ring-black/5 sm:p-5 dark:ring-white/10">
+      <div className="no-print border-b pb-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-start gap-3">
             <Button asChild variant="ghost" size="icon" className="shrink-0" aria-label="Back to invoices">
@@ -44,13 +44,13 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               </Link>
             </Button>
             <div className="min-w-0">
-              <p className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Invoice</p>
+              <p className="font-mono-num text-[11px] tracking-wider text-muted-foreground uppercase">Billing / Invoice</p>
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-semibold tracking-tight">{invoice.number}</h1>
+                <h1 className="font-mono-num text-2xl font-medium tracking-tight sm:text-3xl">{invoice.number}</h1>
                 <StatusBadge status={displayStatus(invoice)} />
               </div>
               <p className="mt-1 text-sm text-muted-foreground">
-                {invoice.customer.name} · {formatMoney(invoice.total)} · due {formatDate(invoice.dueDate)}
+                {invoice.customer.name} · <span className="font-mono-num">{formatMoney(invoice.total)}</span> · due {formatDate(invoice.dueDate)}
                 {invoice.sentAt && <> · sent {formatDateTime(invoice.sentAt)}</>}
               </p>
             </div>
@@ -86,7 +86,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
 
       <div className="grid gap-6 lg:grid-cols-3 print:block">
         <div className="min-w-0 lg:col-span-2">
-          <div className="mx-auto max-w-3xl overflow-x-auto rounded-2xl shadow-card-hover print:overflow-visible print:shadow-none">
+          <div className="mx-auto max-w-3xl overflow-x-auto rounded-xl shadow-card print:overflow-visible print:shadow-none">
             <InvoiceDocument invoice={invoice} />
           </div>
         </div>
