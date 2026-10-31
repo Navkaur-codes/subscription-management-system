@@ -13,9 +13,10 @@ import { FilterTabs, Pagination, SearchInput, Toolbar } from "@/components/share
 import { StatusBadge } from "@/components/shared/status-badge";
 import { AvatarName, MetricStrip } from "@/components/shared/display";
 import { ActionButton } from "@/components/shared/action-button";
-import { Stagger } from "@/components/motion";
+import { Magnetic, Stagger } from "@/components/motion";
 import { Button } from "@/components/ui/button";
 import { PlanFilter } from "@/components/subscriptions/plan-filter";
+import { compactMoney } from "@/components/subscriptions/mono";
 import { closeExpiredAction } from "./actions";
 
 export const metadata = { title: "Subscriptions" };
@@ -42,7 +43,7 @@ const columns: Column<Row>[] = [
     header: "Subscription",
     cell: (r) => (
       <div className="flex min-w-0 items-center gap-4">
-        <span className="w-28 shrink-0 font-medium">{r.number}</span>
+        <span className="font-mono-num w-32 shrink-0 text-[13px] font-medium">{r.number}</span>
         <AvatarName name={r.customer} sub={r.email} size="sm" />
       </div>
     ),
@@ -55,7 +56,7 @@ const columns: Column<Row>[] = [
   { key: "status", header: "Status", cell: (r) => <StatusBadge status={r.status} /> },
   { key: "next", header: "Next invoice", cell: (r) => formatDate(r.nextInvoiceDate) },
   { key: "expiry", header: "Expiry", cell: (r) => formatDate(r.expiryDate) },
-  { key: "total", header: "Recurring", align: "right", cell: (r) => <span className="font-medium">{formatMoney(r.total)}</span> },
+  { key: "total", header: "Recurring", align: "right", cell: (r) => <span className="font-mono-num font-medium">{formatMoney(r.total)}</span> },
 ];
 
 export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
@@ -124,19 +125,20 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
             >
               Close expired
             </ActionButton>
-            <Button size="sm" asChild>
-              <Link href="/subscriptions/new">
-                <Plus className="size-4" /> New subscription
-              </Link>
-            </Button>
+            <Magnetic>
+              <Button size="sm" asChild>
+                <Link href="/subscriptions/new">
+                  <Plus className="size-4" /> New subscription
+                </Link>
+              </Button>
+            </Magnetic>
           </>
         }
       />
       <div>
         <MetricStrip
           items={[
-            { label: "Active", value: n(metrics.counts.ACTIVE ?? 0), hint: "Billing now" },
-            { label: "MRR", value: formatMoney(metrics.mrr), hint: "Monthly, pre-tax" },
+            { label: "Active", value: <span className="font-mono-num">{n(metrics.counts.ACTIVE ?? 0)}</span>, hint: "Billing now" },            { label: "MRR", value: <span className="font-mono-num">{compactMoney(metrics.mrr)}</span>, hint: `${formatMoney(metrics.mrr)} pre-tax` },
             { label: "Paused", value: n(metrics.counts.PAUSED ?? 0), hint: "Not billing" },
             { label: "Closing soon", value: n(metrics.closingSoon), hint: "Expiring in 30 days" },
           ]}

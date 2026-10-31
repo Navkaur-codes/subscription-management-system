@@ -99,7 +99,7 @@ export function LinesEditor({
                     <Input
                       type="number"
                       min={1}
-                      className="h-8 min-w-16 text-right"
+                      className="font-mono-num h-8 min-w-16 text-right"
                       value={l.quantity}
                       onChange={(e) => update(i, { quantity: Math.max(0, Math.floor(Number(e.target.value))) })}
                     />
@@ -109,13 +109,13 @@ export function LinesEditor({
                       type="number"
                       min={0}
                       step="0.01"
-                      className="h-8 min-w-24 text-right"
+                      className="font-mono-num h-8 min-w-24 text-right"
                       value={l.unitPrice}
                       onChange={(e) => update(i, { unitPrice: Number(e.target.value) })}
                     />
                   </td>
-                  <td className="num px-3 text-right text-muted-foreground">{l.taxRate}%</td>
-                  <td className="num px-3 text-right font-medium">{formatMoney(priced[i]?.amount ?? 0)}</td>
+                  <td className="font-mono-num px-3 text-right text-muted-foreground">{l.taxRate}%</td>
+                  <td className="font-mono-num px-3 text-right font-medium whitespace-nowrap">{formatMoney(priced[i]?.amount ?? 0)}</td>
                   <td className="p-2">
                     <Button
                       type="button"

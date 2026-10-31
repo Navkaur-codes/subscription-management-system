@@ -166,9 +166,9 @@ export function SubscriptionForm({
       />
       </div>
 
-      <div className="sticky bottom-0 z-20 mt-6 flex items-center justify-between gap-3 rounded-2xl border bg-card/90 p-3 shadow-card backdrop-blur">
-        <p className="num hidden truncate pl-2 text-sm text-muted-foreground sm:block">
-          Total per period <span className="font-semibold text-foreground">{formatMoney(totals.total)}</span>
+      <div className="sticky bottom-0 z-20 mt-6 flex items-center justify-between gap-3 rounded-xl border bg-card p-3 shadow-card">
+        <p className="hidden truncate pl-2 text-sm text-muted-foreground sm:block">
+          Total per period <span className="font-mono-num font-semibold text-foreground">{formatMoney(totals.total)}</span>
         </p>
         <div className="ml-auto flex gap-2">
           <Button type="button" variant="outline" onClick={() => router.back()}>

@@ -33,3 +33,13 @@ Session E builds shared components (AvatarName, MetricStrip, Stepper, Timeline, 
 Test on dev:b (3002) as staff — create from a template, walk the lifecycle incl. Close and Renew, at 1440×900 and 375×812. DB was re-seeded — sign out/in if stale. Timebox 75 min. No git writes; Suggested commit after each item; typecheck + lint clean.
 Reply "SESSION B REDESIGN DONE" with what you tested.
 ```
+
+### 3. v3 "Ember Loop" (from Main)
+```
+Move the subscription pages to the v3 "Ember Loop" design (docs/DESIGN.md: warm paper/ink, one ember accent, font-display serif with <em>, font-mono-num for numbers/IDs). Adopt E's GSAP primitives (RevealText, ScrambleNumber, Flip indicator, Orbit) when they land; never import gsap directly.
+1. Purge v2 (violet/indigo/brand-gradient/backdrop-blur) in subscriptions files → v3 tokens.
+2. Subscription numbers + money in font-mono-num; detail hero title in font-display ("SUB/2026/00001" mono eyebrow, serif "Starter Monthly for <em>Kiran Traders</em>").
+3. Signature moment: lifecycle stepper — ruled horizontal track, ember fill that animates (Flip or width tween) to the current step after a status change; recurring total via ScrambleNumber.
+4. Form: totals panel as a ruled receipt (mono numbers, serif "Total per period").
+Test at 1440×900 and 375×812, light + dark, walk a lifecycle. No git writes; Suggested commit; typecheck + lint clean; log here. Reply "SESSION B V3 DONE".
+```

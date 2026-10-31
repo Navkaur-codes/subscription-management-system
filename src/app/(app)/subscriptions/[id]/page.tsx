@@ -1,17 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Receipt } from "lucide-react";
-import type { SubscriptionStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 import { formatDate, formatMoney, humanize, toNum } from "@/lib/format";
+import { Mono } from "@/components/subscriptions/mono";
+import { LifecycleTrack } from "@/components/subscriptions/lifecycle-track";
 import { displayStatus } from "@/lib/invoice-status";
 import { priceSubscription, toDiscountRule } from "@/lib/subscriptions/pricing";
 import { Section } from "@/components/shared/page-header";
 import { DataTable, EmptyState, type Column } from "@/components/shared/data-table";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { FadeIn, Pulse } from "@/components/motion";
-import { AvatarName, Stepper, Timeline } from "@/components/shared/display";
+import { FadeIn, Pulse, RevealText, ScrambleNumber } from "@/components/motion";
+import { Timeline } from "@/components/shared/display";
 import { StatusActions } from "@/components/subscriptions/status-actions";
 import { activity } from "@/components/subscriptions/activity";
 import { TotalsPanel } from "@/components/subscriptions/totals-panel";
@@ -20,7 +21,6 @@ import { BillingCard } from "@/components/subscriptions/billing-card";
 export const metadata = { title: "Subscription" };
 
 const PER = { DAILY: "day", WEEKLY: "week", MONTHLY: "month", YEARLY: "year" } as const;
-const STEPS: SubscriptionStatus[] = ["DRAFT", "QUOTATION", "CONFIRMED", "ACTIVE", "CLOSED"];
 
 type LineRow = { id: string; name: string; sub?: string; quantity: number; unitPrice: number; taxRate: number; discount: number; amount: number };
 type InvoiceRow = { id: string; number: string; invoiceDate: Date; dueDate: Date; status: string; total: number };
@@ -36,19 +36,19 @@ const lineColumns: Column<LineRow>[] = [
       </div>
     ),
   },
-  { key: "qty", header: "Qty", align: "right", cell: (r) => r.quantity },
-  { key: "unit", header: "Unit price", align: "right", cell: (r) => formatMoney(r.unitPrice) },
-  { key: "disc", header: "Discount", align: "right", cell: (r) => (r.discount ? formatMoney(-r.discount) : "—") },
-  { key: "tax", header: "Tax", align: "right", cell: (r) => `${r.taxRate}%` },
-  { key: "amount", header: "Amount", align: "right", cell: (r) => <span className="font-medium">{formatMoney(r.amount)}</span> },
+  { key: "qty", header: "Qty", align: "right", cell: (r) => <Mono>{r.quantity}</Mono> },
+  { key: "unit", header: "Unit price", align: "right", cell: (r) => <Mono>{formatMoney(r.unitPrice)}</Mono> },
+  { key: "disc", header: "Discount", align: "right", cell: (r) => <Mono>{r.discount ? formatMoney(-r.discount) : "—"}</Mono> },
+  { key: "tax", header: "Tax", align: "right", cell: (r) => <Mono>{r.taxRate}%</Mono> },
+  { key: "amount", header: "Amount", align: "right", cell: (r) => <Mono strong>{formatMoney(r.amount)}</Mono> },
 ];
 
 const invoiceColumns: Column<InvoiceRow>[] = [
-  { key: "number", header: "Number", cell: (r) => <span className="font-medium">{r.number}</span> },
+  { key: "number", header: "Number", cell: (r) => <Mono strong>{r.number}</Mono> },
   { key: "date", header: "Date", cell: (r) => formatDate(r.invoiceDate) },
   { key: "due", header: "Due", cell: (r) => formatDate(r.dueDate) },
   { key: "status", header: "Status", cell: (r) => <StatusBadge status={r.status} /> },
-  { key: "total", header: "Total", align: "right", cell: (r) => formatMoney(r.total) },
+  { key: "total", header: "Total", align: "right", cell: (r) => <Mono>{formatMoney(r.total)}</Mono> },
 ];
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
@@ -99,35 +99,35 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
       <section className="card-surface p-5 sm:p-6">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 space-y-3">
-            <p className="eyebrow">
-              <Link href="/subscriptions" className="hover:text-foreground">Subscriptions</Link> / {sub.number}
-            </p>
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-[28px] font-semibold tracking-tight">{sub.number}</h1>
+              <p className="font-mono-num text-xs tracking-wide text-muted-foreground">
+                <Link href="/subscriptions" className="hover:text-foreground">SUBSCRIPTIONS</Link> / {sub.number}
+              </p>
               <Pulse trigger={sub.status}>
                 <StatusBadge status={sub.status} />
               </Pulse>
             </div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-              <Link href={`/customers/${sub.customer.id}`} className="min-w-0 rounded-lg hover:opacity-80">
-                <AvatarName name={sub.customer.name} sub={sub.customer.email} />
-              </Link>
-              <span className="rounded-full border bg-muted px-2.5 py-0.5 text-xs font-medium">
-                {sub.plan.name} · {period}
-              </span>
-            </div>
+            <RevealText as="h1" by="words" className="font-display text-4xl leading-[1.05] sm:text-5xl">
+              {sub.plan.name} for <em>{sub.customer.name}</em>
+            </RevealText>
+            <p className="text-sm text-muted-foreground">
+              <Link href={`/customers/${sub.customer.id}`} className="text-foreground underline decoration-ember underline-offset-4 hover:decoration-2">
+                {sub.customer.email}
+              </Link>{" "}
+              · billed {period} · {sub.paymentTerms}-day terms
+            </p>
           </div>
-          <div className="shrink-0 lg:text-right">
+          <div className="shrink-0 border-t pt-4 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6 lg:text-right">
             <p className="eyebrow">Recurring total</p>
-            <p className="num text-[30px] font-semibold tracking-tight">{formatMoney(totals.total)}</p>
+            <ScrambleNumber value={totals.total} format="money" className="font-mono-num mt-1 block text-3xl font-semibold" />
             <p className="text-xs text-muted-foreground">per {PER[sub.plan.billingPeriod]} incl. tax</p>
           </div>
         </div>
+        <div className="mt-6 border-t pt-6">
+          <LifecycleTrack status={sub.status} />
+        </div>
         <div className="mt-6 flex flex-wrap gap-2 border-t pt-5">
           <StatusActions id={sub.id} status={sub.status} plan={sub.plan} />
-        </div>
-        <div className="mt-5 overflow-x-auto">
-          <Stepper steps={STEPS.map(humanize)} current={STEPS.indexOf(sub.status === "PAUSED" ? "ACTIVE" : sub.status)} side={sub.status === "PAUSED" ? "Paused" : undefined} />
         </div>
       </section>
 
@@ -136,7 +136,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           <Section title="Order lines" description={`${sub.lines.length} product${sub.lines.length === 1 ? "" : "s"} billed ${period}`}>
             <DataTable columns={lineColumns} rows={lineRows} />
             <div className="mt-5">
-              <TotalsPanel totals={totals} label="Total per period" />
+              <TotalsPanel totals={totals} />
             </div>
           </Section>
 

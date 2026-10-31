@@ -52,3 +52,12 @@ Sales/staff create subscriptions (from scratch or a quotation template), move th
 - [x] Form: card sections with helper text, sticky summary card (totals + readiness checks), sticky bottom action bar.
 - Tested as staff at 1440×900 + 375×812 (no horizontal page scroll): template → SUB/2026/05010 → Quotation → Confirmed → Active (no Pause on yearly) → Renew (2027→2028) → Close (actions gone, next invoice cleared, timeline shows Closed); SUB/2026/00001 Pause → Activate (next invoice kept).
 - Fixed in passing: Radix `SelectValue` rendered blank on first paint for preset values → labels passed explicitly.
+
+### v3 "Ember Loop"
+- [x] v2 purge (no violet/indigo/gradient/blur/rounded-2xl left in B files); IDs + money in `font-mono-num` (`components/subscriptions/mono.tsx`).
+- [x] Detail hero: mono `SUBSCRIPTIONS / SUB/…` eyebrow + StatusBadge, `RevealText` serif "Plan for *Customer*", `ScrambleNumber` recurring total.
+- [x] Signature: `components/subscriptions/lifecycle-track.tsx` — ruled track, ember fill tweens (CSS transform transition, reduced-motion safe) to the current step after each status change; current-step ring glides via E's `FlipIndicator`; Paused shown on Active. Replaces shared Stepper on this page.
+- [x] Form: receipt preview (dotted leaders, mono figures, double rule, serif "Total *per period*"); also used under order lines on detail.
+- Tested at 1440×900 + 375×812, light + dark: template → SUB/2026/05010 → Quotation (fill 25%) → Confirmed (50%, live tween without reload) → Active (75%, no Pause on yearly) → Renew (2027→2028) → Close (100%, no actions, next invoice cleared). No horizontal page scroll; track fits 375 without inner scroll.
+- Follow-up: `Magnetic` on "New subscription"; status tabs glide via E's FlipIndicator inside shared FilterTabs (verified All → Active); MRR shown compact (₹9.12 Cr) with full amount in hint so the mono figure fits at 375.
+- Reported to Main: v3 font tokens (mono/serif) not resolving at first test (looked fixed later); `/login?next=` drops query string.
