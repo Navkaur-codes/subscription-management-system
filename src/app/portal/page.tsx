@@ -1,13 +1,13 @@
 import Link from "next/link";
-import { CalendarCheck, CalendarClock, Wallet } from "lucide-react";
 import { db } from "@/lib/db";
 import { formatDate, formatMoney, toNum } from "@/lib/format";
 import { outstanding } from "@/lib/invoice-status";
 import { portalCustomer } from "@/lib/insights/portal";
 import { DataTable } from "@/components/shared/data-table";
-import { KpiCard } from "@/components/shared/kpi-card";
+import { KpiStrip } from "@/components/insights/kpi-strip";
+import { DashboardHero } from "@/components/insights/dashboard-hero";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { Stagger } from "@/components/motion";
+import { Orbit, ScrambleNumber, Stagger } from "@/components/motion";
 
 export const metadata = { title: "Overview" };
 
@@ -33,26 +33,35 @@ export default async function Page() {
 
   return (
     <div className="space-y-8">
-      <section className="bg-brand-gradient bg-grid rounded-2xl p-6 text-white shadow-card sm:p-8">
-        <p className="text-xs font-medium tracking-wider text-white/70 uppercase">Customer portal</p>
-        <h1 className="mt-1.5 text-2xl font-semibold tracking-tight sm:text-3xl">Hello, {name.split(" ")[0]}</h1>
-        <p className="mt-1.5 text-sm text-white/80">Manage your subscriptions and keep track of your invoices.</p>
-      </section>
-      <Stagger className="grid gap-6 sm:grid-cols-3">
-        <KpiCard label="Active subscriptions" icon={CalendarCheck} value={activeCount} />
-        <KpiCard label="Next invoice date" icon={CalendarClock} tone="info" value={formatDate(next?.nextInvoiceDate)} />
-        <KpiCard label="Amount due" icon={Wallet} tone={amountDue > 0 ? "danger" : "success"} value={formatMoney(amountDue)} />
+      <DashboardHero
+        eyebrow="Customer portal"
+        headline={
+          <>
+            Hello {name.split(" ")[0]} — {next?.nextInvoiceDate ? <>your plan <em>renews</em> on {formatDate(next.nextInvoiceDate)}</> : <>nothing <em>due</em> soon</>}
+          </>
+        }
+        orbit={<Orbit size={180} dots={3} />}
+        sub={`${activeCount} active subscription${activeCount === 1 ? "" : "s"} · ${formatMoney(amountDue)} currently due`}
+      />
+      <Stagger>
+        <KpiStrip
+          cells={[
+            { label: "Active subscriptions", value: <ScrambleNumber value={activeCount} /> },
+            { label: "Next invoice date", value: formatDate(next?.nextInvoiceDate) },
+            { label: "Amount due", value: formatMoney(amountDue), danger: amountDue > 0 },
+          ]}
+        />
       </Stagger>
       <div>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-[15px] font-semibold">Current subscriptions</h2>
-          <Link href="/portal/subscriptions" className="text-xs font-medium text-brand">View all</Link>
+          <h2 className="font-display text-2xl">Current <em>subscriptions</em></h2>
+          <Link href="/portal/subscriptions" className="text-xs font-medium text-ember">View all</Link>
         </div>
         <DataTable
           rows={subs}
           rowHref={(r) => `/portal/subscriptions/${r.id}`}
           columns={[
-            { key: "n", header: "Number", cell: (r) => <span className="font-medium">{r.number}</span> },
+            { key: "n", header: "Number", cell: (r) => <span className="font-mono-num">{r.number}</span> },
             { key: "p", header: "Plan", cell: (r) => r.plan.name },
             { key: "s", header: "Status", cell: (r) => <StatusBadge status={r.status} /> },
             { key: "x", header: "Next invoice", cell: (r) => formatDate(r.nextInvoiceDate) },
@@ -61,16 +70,16 @@ export default async function Page() {
       </div>
       <div>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-[15px] font-semibold">Unpaid invoices</h2>
-          <Link href="/portal/invoices" className="text-xs font-medium text-brand">View all</Link>
+          <h2 className="font-display text-2xl">Unpaid <em>invoices</em></h2>
+          <Link href="/portal/invoices" className="text-xs font-medium text-ember">View all</Link>
         </div>
         <DataTable
           rows={unpaid}
           rowHref={(r) => `/portal/invoices/${r.id}`}
           columns={[
-            { key: "n", header: "Number", cell: (r) => <span className="font-medium">{r.number}</span> },
+            { key: "n", header: "Number", cell: (r) => <span className="font-mono-num">{r.number}</span> },
             { key: "d", header: "Due", cell: (r) => formatDate(r.dueDate) },
-            { key: "o", header: "Amount due", align: "right", cell: (r) => formatMoney(outstanding(r)) },
+            { key: "o", header: "Amount due", align: "right", cell: (r) => <span className="font-mono-num">{formatMoney(outstanding(r))}</span> },
           ]}
         />
       </div>

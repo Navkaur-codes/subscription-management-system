@@ -61,8 +61,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               ),
             },
             { key: "q", header: "Qty", align: "right", cell: (l) => l.quantity },
-            { key: "u", header: "Unit price", align: "right", cell: (l) => formatMoney(l.unitPrice) },
-            { key: "a", header: "Amount", align: "right", cell: (l) => formatMoney(l.amount) },
+            { key: "u", header: "Unit price", align: "right", cell: (l) => <span className="font-mono-num">{formatMoney(l.unitPrice)}</span> },
+            { key: "a", header: "Amount", align: "right", cell: (l) => <span className="font-mono-num">{formatMoney(l.amount)}</span> },
           ]}
         />
         <dl className="num mt-4 ml-auto max-w-xs space-y-1 text-sm">

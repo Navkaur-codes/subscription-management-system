@@ -1,15 +1,16 @@
-import { format, startOfMonth, subMonths } from "date-fns";
+import { format, formatDistanceToNowStrict, startOfMonth, subMonths } from "date-fns";
 import type { BillingPeriod } from "@prisma/client";
 import { db } from "@/lib/db";
 import { monthlyFactor } from "@/lib/dates";
-import { round2 } from "@/lib/format";
+import { shortMoney } from "./money";
+import { humanize, round2 } from "@/lib/format";
 
 type MonthRow = { month: Date; total: number };
 type PlanRow = { name: string; period: BillingPeriod; total: number; subs: number };
 type SeriesRow = { month: Date; subs: number; mrr: number };
 type InvoiceRow = { k: string; month: Date; a: number; b: number; c: number };
 type OverdueRow = { id: string; number: string; dueDate: Date; total: number; amountPaid: number; name: string };
-type PaymentRow = { id: string; amount: number; paymentDate: Date; invoiceId: string; number: string; name: string };
+type PaymentRow = { id: string; amount: number; method: string; paymentDate: Date; invoiceId: string; number: string; name: string };
 
 const key = (d: Date) => format(new Date(d), "yyyy-MM");
 
@@ -60,9 +61,9 @@ export async function dashboardMetrics() {
       WHERE i.status = 'CONFIRMED' AND i."dueDate" < ${now}
       ORDER BY i."dueDate" ASC LIMIT 8`,
     db.$queryRaw<PaymentRow[]>`
-      SELECT p.id, p.amount::float8 AS amount, p."paymentDate", i.id AS "invoiceId", i.number, c.name
+      SELECT p.id, p.amount::float8 AS amount, p.method::text AS method, p."paymentDate", i.id AS "invoiceId", i.number, c.name
       FROM "Payment" p JOIN "Invoice" i ON i.id = p."invoiceId" JOIN "Customer" c ON c.id = i."customerId"
-      ORDER BY p."paymentDate" DESC LIMIT 8`,
+      ORDER BY p."paymentDate" DESC LIMIT 12`,
     db.subscription.groupBy({ by: ["status"], _count: { _all: true } }),
     db.$queryRaw<MonthRow[]>`
       SELECT date_trunc('month', "paymentDate") AS month, COALESCE(SUM(amount), 0)::float8 AS total
@@ -94,6 +95,7 @@ export async function dashboardMetrics() {
   const recentPayments = paymentRaw.map((r) => ({
     id: r.id,
     amount: r.amount,
+    method: r.method,
     paymentDate: new Date(r.paymentDate),
     invoice: { id: r.invoiceId, number: r.number, customer: { name: r.name } },
   }));
@@ -125,7 +127,12 @@ export async function dashboardMetrics() {
     .sort((a, b) => b.value - a.value)
     .slice(0, 5);
 
+  const ticker = recentPayments.map(
+    (p) => `${p.invoice.number} · paid · ${shortMoney(p.amount)} · ${humanize(p.method)} · ${formatDistanceToNowStrict(p.paymentDate)} ago`
+  );
+
   return {
+    ticker,
     active,
     mrr,
     collected: collectedNow,
@@ -133,7 +140,7 @@ export async function dashboardMetrics() {
     overdueCount: overdue?.c ?? 0,
     overdueAmount: Math.max(0, (overdue?.a ?? 0) - (overdue?.b ?? 0)),
     overdueList,
-    recentPayments,
+    recentPayments: recentPayments.slice(0, 8),
     statuses: statusGroups.map((s) => ({ status: s.status, count: s._count._all })),
     deltas: {
       active: delta(active, subsTrend[10]),

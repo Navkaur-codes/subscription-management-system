@@ -73,7 +73,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
             { key: "company", header: "Company", cell: (r) => r.company ?? "—" },
             { key: "city", header: "City", cell: (r) => r.city ?? "—" },
             { key: "active", header: "Active subs", align: "right", cell: (r) => active.get(r.id) ?? 0 },
-            { key: "due", header: "Outstanding", align: "right", cell: (r) => formatMoney(due.get(r.id) ?? 0) },
+            { key: "due", header: "Outstanding", align: "right", cell: (r) => <span className="font-mono-num">{formatMoney(due.get(r.id) ?? 0)}</span> },
           ]}
         />
       </Stagger>

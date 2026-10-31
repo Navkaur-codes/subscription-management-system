@@ -25,3 +25,4 @@ When the whole acceptance checklist is done: npm run typecheck && npm run lint, 
 
 ## Follow-up prompts
 - Redesign to docs/DESIGN.md v2 (dashboard KPIs/charts, reports, customers, users, portal) + browser test. Done.
+- v3 "Ember Loop" rebuild: ink hero (RevealText/Orbit/Ticker), ruled KPI strip (ScrambleNumber), ember charts, mono numbers, portal hero. Done.

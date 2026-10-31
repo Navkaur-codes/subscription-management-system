@@ -1,8 +1,7 @@
 "use client";
-import { CountUp } from "@/components/motion";
-import { shortMoney } from "@/lib/insights/money";
+import { ScrambleNumber } from "@/components/motion";
 
-/** Animated ₹ amount for KPI cards. */
+/** Animated ₹ amount (Cr / L short form) for KPI cells. */
 export function MoneyCount({ value }: { value: number }) {
-  return <CountUp value={value} format={shortMoney} />;
+  return <ScrambleNumber value={value} format="compact-money" />;
 }

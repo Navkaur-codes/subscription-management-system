@@ -1,23 +1,27 @@
 import { shortMoney } from "@/lib/insights/money";
 
-/** Ranked horizontal bars (e.g. top plans by monthly revenue). */
+/** Ruled ranked list (e.g. top plans by monthly revenue) with a thin ember share bar. */
 export function PlanBars({ items }: { items: { name: string; subs: number; value: number }[] }) {
   const max = Math.max(1, ...items.map((i) => i.value));
   return (
-    <ul className="space-y-4">
-      {items.map((i) => (
-        <li key={i.name}>
-          <div className="mb-1.5 flex items-baseline justify-between gap-3 text-sm">
-            <span className="truncate font-medium">{i.name}</span>
-            <span className="num shrink-0 text-muted-foreground">
-              {shortMoney(i.value)} <span className="text-xs">· {i.subs.toLocaleString("en-IN")} subs</span>
+    <ol className="divide-y">
+      {items.map((i, idx) => (
+        <li key={i.name} className="py-3 first:pt-0 last:pb-0">
+          <div className="flex items-baseline justify-between gap-3 text-sm">
+            <span className="flex min-w-0 items-baseline gap-3">
+              <span className="font-mono-num text-xs text-muted-foreground">{String(idx + 1).padStart(2, "0")}</span>
+              <span className="truncate font-medium">{i.name}</span>
             </span>
+            <span className="font-mono-num shrink-0">{shortMoney(i.value)}</span>
           </div>
-          <div className="h-2 rounded-full bg-muted">
-            <div className="h-2 rounded-full bg-brand-gradient" style={{ width: `${Math.max(3, (i.value / max) * 100)}%` }} />
+          <div className="mt-2 flex items-center gap-3 pl-8">
+            <div className="h-px flex-1 bg-border">
+              <div className="h-px bg-ember" style={{ width: `${Math.max(2, (i.value / max) * 100)}%` }} />
+            </div>
+            <span className="font-mono-num text-[11px] text-muted-foreground">{i.subs.toLocaleString("en-IN")} subs</span>
           </div>
         </li>
       ))}
-    </ul>
+    </ol>
   );
 }

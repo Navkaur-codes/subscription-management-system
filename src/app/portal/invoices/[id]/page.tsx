@@ -31,7 +31,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               { key: "d", header: "Date", cell: (p) => formatDate(p.paymentDate) },
               { key: "m", header: "Method", cell: (p) => humanize(p.method) },
               { key: "r", header: "Reference", cell: (p) => p.reference ?? "—" },
-              { key: "a", header: "Amount", align: "right", cell: (p) => formatMoney(p.amount) },
+              { key: "a", header: "Amount", align: "right", cell: (p) => <span className="font-mono-num">{formatMoney(p.amount)}</span> },
             ]}
           />
         </div>

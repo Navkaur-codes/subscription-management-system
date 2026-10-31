@@ -65,7 +65,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
         rows={rows}
         rowHref={(r) => `/subscriptions/${r.id}`}
         columns={[
-          { key: "n", header: "Number", cell: (r) => <span className="font-medium">{r.number}</span> },
+          { key: "n", header: "Number", cell: (r) => <span className="font-mono-num">{r.number}</span> },
           { key: "c", header: "Customer", cell: (r) => r.customer.name },
           { key: "p", header: "Plan", cell: (r) => r.plan.name },
           { key: "s", header: "Status", cell: (r) => <StatusBadge status={r.status} /> },
@@ -86,13 +86,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
         rows={rows}
         rowHref={(r) => `/invoices/${r.id}`}
         columns={[
-          { key: "n", header: "Number", cell: (r) => <span className="font-medium">{r.number}</span> },
+          { key: "n", header: "Number", cell: (r) => <span className="font-mono-num">{r.number}</span> },
           { key: "c", header: "Customer", cell: (r) => r.customer.name },
           { key: "s", header: "Status", cell: (r) => <StatusBadge status={displayStatus(r)} /> },
           { key: "d", header: "Invoice date", cell: (r) => formatDate(r.invoiceDate) },
           { key: "due", header: "Due", cell: (r) => formatDate(r.dueDate) },
-          { key: "t", header: "Total", align: "right", cell: (r) => formatMoney(r.total) },
-          { key: "o", header: "Outstanding", align: "right", cell: (r) => formatMoney(outstanding(r)) },
+          { key: "t", header: "Total", align: "right", cell: (r) => <span className="font-mono-num">{formatMoney(r.total)}</span> },
+          { key: "o", header: "Outstanding", align: "right", cell: (r) => <span className="font-mono-num">{formatMoney(outstanding(r))}</span> },
         ]}
       />
     );
@@ -113,7 +113,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
           { key: "c", header: "Customer", cell: (r) => r.invoice.customer.name },
           { key: "m", header: "Method", cell: (r) => humanize(r.method) },
           { key: "r", header: "Reference", cell: (r) => r.reference ?? "—" },
-          { key: "a", header: "Amount", align: "right", cell: (r) => formatMoney(r.amount) },
+          { key: "a", header: "Amount", align: "right", cell: (r) => <span className="font-mono-num">{formatMoney(r.amount)}</span> },
         ]}
       />
     );

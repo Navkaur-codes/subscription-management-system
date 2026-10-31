@@ -34,12 +34,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
         rows={rows}
         rowHref={(r) => `/portal/invoices/${r.id}`}
         columns={[
-          { key: "n", header: "Number", cell: (r) => <span className="font-medium">{r.number}</span> },
+          { key: "n", header: "Number", cell: (r) => <span className="font-mono-num">{r.number}</span> },
           { key: "s", header: "Status", cell: (r) => <StatusBadge status={displayStatus(r)} /> },
           { key: "d", header: "Date", cell: (r) => formatDate(r.invoiceDate) },
           { key: "due", header: "Due", cell: (r) => formatDate(r.dueDate) },
-          { key: "t", header: "Total", align: "right", cell: (r) => formatMoney(r.total) },
-          { key: "o", header: "Amount due", align: "right", cell: (r) => formatMoney(outstanding(r)) },
+          { key: "t", header: "Total", align: "right", cell: (r) => <span className="font-mono-num">{formatMoney(r.total)}</span> },
+          { key: "o", header: "Amount due", align: "right", cell: (r) => <span className="font-mono-num">{formatMoney(outstanding(r))}</span> },
         ]}
       />
       <Pagination page={page} pageSize={PAGE_SIZE} total={total} />

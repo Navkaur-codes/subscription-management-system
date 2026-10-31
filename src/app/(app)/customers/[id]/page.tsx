@@ -75,7 +75,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           rows={subs}
           rowHref={(r) => `/subscriptions/${r.id}`}
           columns={[
-            { key: "n", header: "Number", cell: (r) => <span className="font-medium">{r.number}</span> },
+            { key: "n", header: "Number", cell: (r) => <span className="font-mono-num">{r.number}</span> },
             { key: "p", header: "Plan", cell: (r) => r.plan.name },
             { key: "s", header: "Status", cell: (r) => <StatusBadge status={r.status} /> },
             { key: "d", header: "Start", cell: (r) => formatDate(r.startDate) },
@@ -89,11 +89,11 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           rows={invoices}
           rowHref={(r) => `/invoices/${r.id}`}
           columns={[
-            { key: "n", header: "Number", cell: (r) => <span className="font-medium">{r.number}</span> },
+            { key: "n", header: "Number", cell: (r) => <span className="font-mono-num">{r.number}</span> },
             { key: "s", header: "Status", cell: (r) => <StatusBadge status={displayStatus(r)} /> },
             { key: "d", header: "Due", cell: (r) => formatDate(r.dueDate) },
-            { key: "t", header: "Total", align: "right", cell: (r) => formatMoney(r.total) },
-            { key: "o", header: "Outstanding", align: "right", cell: (r) => formatMoney(outstanding(r)) },
+            { key: "t", header: "Total", align: "right", cell: (r) => <span className="font-mono-num">{formatMoney(r.total)}</span> },
+            { key: "o", header: "Outstanding", align: "right", cell: (r) => <span className="font-mono-num">{formatMoney(outstanding(r))}</span> },
           ]}
         />
       </div>
