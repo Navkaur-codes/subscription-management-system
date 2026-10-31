@@ -37,4 +37,11 @@ Sales/staff create subscriptions (from scratch or a quotation template), move th
 (none yet)
 
 ## Status
-- [ ] Not started
+- [x] 1 List `/subscriptions` (filters, search, plan select, pagination, Close expired)
+- [x] 2 Create/edit form + lines editor + live totals + `?templateId=` prefill
+- [x] 3 Detail page (stepper, overview, lines+totals, invoices)
+- [x] 4 Lifecycle (`src/lib/subscriptions/lifecycle.ts`): changeStatus, renew, closeExpired
+- [x] 5 Email quotation (Ethereal preview in toast)
+- Verified in browser: template "Enterprise CRM bundle" → SUB/2026/00010 (Odoo +560 variant, ₹68,145 total), Draft→Quotation→Confirmed→Active, Pause hidden for Business Yearly, Renew 2027→2028, Close expired (0 eligible).
+- Not browser-tested: pause/resume on a pausable plan, 5k-row timing (bulk seed not run). Typecheck + lint clean for B files (C's `invoices/new` had type errors at last check).
+- Note: added a `dev-b` entry to `.claude/launch.json` (untracked tool config).
