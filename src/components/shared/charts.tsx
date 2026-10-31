@@ -21,6 +21,7 @@ import {
   type TooltipContentProps,
   type TooltipValueType,
 } from "recharts";
+import { DrawIn } from "@/components/motion";
 
 export const CHART_COLORS = [1, 2, 3, 4, 5, 6].map((i) => `var(--chart-${i})`);
 
@@ -37,21 +38,21 @@ function fmt(v: unknown, f: Fmt = "number", short = false): string {
   return f === "money" ? `₹${s}` : s;
 }
 
-const axis = { stroke: "var(--muted-foreground)", fontSize: 11, tickLine: false, axisLine: false } as const;
+const axis = { stroke: "var(--muted-foreground)", fontSize: 11, fontFamily: "var(--font-geist-mono), ui-monospace, monospace", tickLine: false, axisLine: false } as const;
 const ANIM = 600;
 
 function ChartTooltip({ active, payload, label, format }: TooltipContentProps<TooltipValueType, string | number> & { format?: Fmt }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="min-w-36 rounded-xl border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-lg">
-      {label !== undefined && <p className="mb-1 font-medium">{String(label)}</p>}
+    <div className="min-w-36 rounded-lg border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-card-hover">
+      {label !== undefined && <p className="mb-1 font-mono-num text-[10.5px] tracking-wider text-muted-foreground uppercase">{String(label)}</p>}
       {payload.map((p) => (
         <div key={String(p.dataKey ?? p.name)} className="flex items-center justify-between gap-4">
           <span className="flex items-center gap-1.5 text-muted-foreground">
             <span className="size-2 rounded-full" style={{ background: p.color ?? p.payload?.fill }} />
             {p.name}
           </span>
-          <span className="num font-medium">{fmt(p.value, format)}</span>
+          <span className="font-mono-num font-medium">{fmt(p.value, format)}</span>
         </div>
       ))}
     </div>
@@ -67,6 +68,7 @@ export function AreaTrend({
   format = "number",
   color = CHART_COLORS[0],
   height = 260,
+  animate = true,
 }: {
   data: Row[];
   xKey: string;
@@ -75,34 +77,37 @@ export function AreaTrend({
   format?: Fmt;
   color?: string;
   height?: number;
+  /** DrawSVG stroke draw-in on mount */
+  animate?: boolean;
 }) {
   const id = useId().replace(/:/g, "");
-  return (
+  const chart = (
     <ResponsiveContainer width="100%" height={height}>
       <AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
         <defs>
           <linearGradient id={`a${id}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity={0.35} />
+            <stop offset="0%" stopColor={color} stopOpacity={0.22} />
             <stop offset="100%" stopColor={color} stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" />
+        <CartesianGrid vertical={false} stroke="var(--border)" />
         <XAxis dataKey={xKey} {...axis} tickMargin={8} minTickGap={16} />
         <YAxis {...axis} width={52} tickFormatter={(v) => fmt(v, format, true)} />
-        <Tooltip content={(p) => <ChartTooltip {...p} format={format} />} cursor={{ stroke: "var(--border)" }} />
+        <Tooltip content={(p) => <ChartTooltip {...p} format={format} />} cursor={{ stroke: "var(--muted-foreground)", strokeDasharray: "2 3" }} />
         <Area
           type="monotone"
           dataKey={yKey}
           name={label ?? yKey}
           stroke={color}
-          strokeWidth={2.25}
+          strokeWidth={2}
           fill={`url(#a${id})`}
-          animationDuration={ANIM}
+          isAnimationActive={false}
           activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--card)" }}
         />
       </AreaChart>
     </ResponsiveContainer>
   );
+  return animate ? <DrawIn>{chart}</DrawIn> : chart;
 }
 
 /** Grouped (or stacked) bars. */
@@ -127,7 +132,7 @@ export function BarTrend({
         <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" />
         <XAxis dataKey={xKey} {...axis} tickMargin={8} minTickGap={8} />
         <YAxis {...axis} width={52} tickFormatter={(v) => fmt(v, format, true)} />
-        <Tooltip content={(p) => <ChartTooltip {...p} format={format} />} cursor={{ fill: "var(--muted)", opacity: 0.5 }} />
+        <Tooltip content={(p) => <ChartTooltip {...p} format={format} />} cursor={{ fill: "var(--muted)", opacity: 0.6 }} />
         {bars.length > 1 && (
           <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
         )}
@@ -138,8 +143,8 @@ export function BarTrend({
             name={b.label}
             fill={b.color ?? CHART_COLORS[i % CHART_COLORS.length]}
             stackId={stacked ? "s" : undefined}
-            radius={stacked && i < bars.length - 1 ? 0 : [6, 6, 0, 0]}
-            maxBarSize={36}
+            radius={stacked && i < bars.length - 1 ? 0 : [3, 3, 0, 0]}
+            maxBarSize={28}
             animationDuration={ANIM}
           />
         ))}
@@ -176,7 +181,7 @@ export function Donut({
               innerRadius="64%"
               outerRadius="92%"
               paddingAngle={2}
-              cornerRadius={4}
+              cornerRadius={2}
               stroke="var(--card)"
               strokeWidth={2}
               animationDuration={ANIM}
@@ -189,8 +194,8 @@ export function Donut({
         </ResponsiveContainer>
         {(centerLabel || centerValue) && (
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-            {centerValue && <span className="num text-xl font-semibold">{centerValue}</span>}
-            {centerLabel && <span className="text-xs text-muted-foreground">{centerLabel}</span>}
+            {centerValue && <span className="font-display text-3xl leading-none">{centerValue}</span>}
+            {centerLabel && <span className="mt-1 font-mono-num text-[10px] tracking-wider text-muted-foreground uppercase">{centerLabel}</span>}
           </div>
         )}
       </div>
@@ -201,7 +206,7 @@ export function Donut({
               <span className="size-2 shrink-0 rounded-full" style={{ background: d.color ?? CHART_COLORS[i % CHART_COLORS.length] }} />
               <span className="truncate">{d.name}</span>
             </span>
-            <span className="num font-medium">
+            <span className="font-mono-num font-medium">
               {fmt(d.value, format)}
               {total > 0 && <span className="ml-1.5 text-muted-foreground">{Math.round((d.value / total) * 100)}%</span>}
             </span>
@@ -217,24 +222,27 @@ export function Sparkline({
   data,
   color = CHART_COLORS[0],
   height = 36,
+  animate = true,
 }: {
   data: number[];
   color?: string;
   height?: number;
+  animate?: boolean;
 }) {
   const id = useId().replace(/:/g, "");
   const rows = data.map((v, i) => ({ i, v }));
-  return (
+  const chart = (
     <ResponsiveContainer width="100%" height={height}>
       <AreaChart data={rows} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
         <defs>
           <linearGradient id={`s${id}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity={0.3} />
+            <stop offset="0%" stopColor={color} stopOpacity={0.18} />
             <stop offset="100%" stopColor={color} stopOpacity={0} />
           </linearGradient>
         </defs>
-        <Area type="monotone" dataKey="v" stroke={color} strokeWidth={1.75} fill={`url(#s${id})`} isAnimationActive={false} dot={false} />
+        <Area type="monotone" dataKey="v" stroke={color} strokeWidth={1.5} fill={`url(#s${id})`} isAnimationActive={false} dot={false} />
       </AreaChart>
     </ResponsiveContainer>
   );
+  return animate ? <DrawIn>{chart}</DrawIn> : chart;
 }
