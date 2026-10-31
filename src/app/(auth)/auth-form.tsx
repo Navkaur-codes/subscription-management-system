@@ -34,6 +34,7 @@ export function AuthForm({
             type={f.type ?? "text"}
             placeholder={f.placeholder}
             autoComplete={f.autoComplete}
+            defaultValue={f.type === "password" ? undefined : state.values?.[f.name]}
             aria-invalid={!!state.fieldErrors?.[f.name]}
           />
         </FormField>

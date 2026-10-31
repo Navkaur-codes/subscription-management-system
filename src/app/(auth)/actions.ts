@@ -12,6 +12,8 @@ export type AuthState = {
   fieldErrors?: Record<string, string>;
   success?: string;
   previewUrl?: string;
+  /** Echo of non-secret inputs so the form keeps them after a failed submit. */
+  values?: Record<string, string>;
 };
 
 function fieldErrors(issues: { path: (string | number)[]; message: string }[]) {
@@ -20,15 +22,20 @@ function fieldErrors(issues: { path: (string | number)[]; message: string }[]) {
   return out;
 }
 
+/** Non-secret fields to re-fill after an error (never passwords or tokens). */
+function keep(fd: FormData) {
+  return { name: String(fd.get("name") ?? ""), email: String(fd.get("email") ?? "") };
+}
+
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
 
 export async function signupAction(_: AuthState, fd: FormData): Promise<AuthState> {
   const parsed = signupSchema.safeParse(Object.fromEntries(fd));
-  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error.issues) };
+  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error.issues), values: keep(fd) };
   const { name, email, password } = parsed.data;
 
   if (await db.user.findUnique({ where: { email } }))
-    return { fieldErrors: { email: "An account with this email already exists" } };
+    return { fieldErrors: { email: "An account with this email already exists" }, values: keep(fd) };
 
   const user = await db.$transaction(async (tx) => {
     const u = await tx.user.create({
@@ -55,12 +62,12 @@ export async function signupAction(_: AuthState, fd: FormData): Promise<AuthStat
 
 export async function loginAction(_: AuthState, fd: FormData): Promise<AuthState> {
   const parsed = loginSchema.safeParse(Object.fromEntries(fd));
-  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error.issues) };
+  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error.issues), values: keep(fd) };
   const { email, password } = parsed.data;
 
   const user = await db.user.findUnique({ where: { email }, include: { customer: true } });
   if (!user || !(await verifyPassword(password, user.passwordHash)))
-    return { error: "Invalid email or password" };
+    return { error: "Invalid email or password", values: keep(fd) };
   if (!user.isActive) return { error: "This account has been deactivated" };
 
   await createSession({
@@ -81,7 +88,7 @@ export async function logoutAction() {
 
 export async function forgotPasswordAction(_: AuthState, fd: FormData): Promise<AuthState> {
   const parsed = forgotSchema.safeParse(Object.fromEntries(fd));
-  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error.issues) };
+  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error.issues), values: keep(fd) };
   const generic = "If an account exists for that email, a reset link is on its way.";
 
   const user = await db.user.findUnique({ where: { email: parsed.data.email } });
@@ -107,7 +114,7 @@ export async function forgotPasswordAction(_: AuthState, fd: FormData): Promise<
 
 export async function resetPasswordAction(_: AuthState, fd: FormData): Promise<AuthState> {
   const parsed = resetSchema.safeParse(Object.fromEntries(fd));
-  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error.issues) };
+  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error.issues), values: keep(fd) };
 
   const rec = await db.passwordResetToken.findUnique({ where: { tokenHash: sha256(parsed.data.token) } });
   if (!rec || rec.usedAt || rec.expiresAt < new Date())

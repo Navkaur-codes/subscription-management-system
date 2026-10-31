@@ -40,13 +40,10 @@ export function UserMenu({ user }: { user: SessionPayload }) {
           <p className="mt-1 text-xs text-muted-foreground">{humanize(user.role)}</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <form action={logoutAction}>
-          <DropdownMenuItem asChild>
-            <button type="submit" className="w-full">
-              <LogOut className="size-4" /> Sign out
-            </button>
-          </DropdownMenuItem>
-        </form>
+        {/* Call the action directly: a <form> inside the menu unmounts before it can submit. */}
+        <DropdownMenuItem onSelect={() => void logoutAction()}>
+          <LogOut className="size-4" /> Sign out
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

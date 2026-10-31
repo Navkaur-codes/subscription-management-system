@@ -1,6 +1,45 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "web", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 3000 }
+    {
+      "name": "web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "dev-b",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:b"
+      ],
+      "port": 3002
+    },
+    {
+      "name": "dev-c",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:c"
+      ],
+      "port": 3003
+    },
+    {
+      "name": "prod",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "cross-env",
+        "NEXT_DIST_DIR=.next-build",
+        "next",
+        "start",
+        "-p",
+        "3005"
+      ],
+      "port": 3005
+    }
   ]
 }
