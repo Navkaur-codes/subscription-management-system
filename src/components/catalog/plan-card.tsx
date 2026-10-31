@@ -1,9 +1,14 @@
 import Link from "next/link";
-import { CalendarRange, Users } from "lucide-react";
+import { ScrambleNumber } from "@/components/motion";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { formatDate, formatMoney } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 
-const PER: Record<string, string> = { DAILY: "day", WEEKLY: "week", MONTHLY: "month", YEARLY: "year" };
+const PER: Record<string, string> = {
+  DAILY: "day",
+  WEEKLY: "week",
+  MONTHLY: "month",
+  YEARLY: "year",
+};
 
 export type PlanCardData = {
   id: string;
@@ -21,7 +26,9 @@ export type PlanCardData = {
   activeSubs: number;
 };
 
-export function planChips(p: Pick<PlanCardData, "autoClose" | "closable" | "pausable" | "renewable">) {
+export function planChips(
+  p: Pick<PlanCardData, "autoClose" | "closable" | "pausable" | "renewable">,
+) {
   return [
     p.pausable && "Pausable",
     p.renewable && "Renewable",
@@ -31,7 +38,11 @@ export function planChips(p: Pick<PlanCardData, "autoClose" | "closable" | "paus
 }
 
 export function Chip({ children }: { children: React.ReactNode }) {
-  return <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{children}</span>;
+  return (
+    <span className="font-mono-num inline-flex items-center rounded-md border bg-muted/50 px-1.5 py-0.5 text-[11px] text-muted-foreground">
+      {children}
+    </span>
+  );
 }
 
 export function availability(p: Pick<PlanCardData, "startDate" | "endDate">) {
@@ -39,36 +50,45 @@ export function availability(p: Pick<PlanCardData, "startDate" | "endDate">) {
   return `${formatDate(p.startDate)} → ${formatDate(p.endDate)}`;
 }
 
+/** One editorial pricing column; the grid around it draws the rules. */
 export function PlanCard({ plan: p }: { plan: PlanCardData }) {
   const chips = planChips(p);
   return (
     <Link
       href={`/plans/${p.id}`}
       data-stagger
-      className="card-hover group flex flex-col rounded-2xl border bg-card p-6 shadow-card ring-1 ring-black/5 transition-transform hover:-translate-y-0.5 dark:ring-white/10"
+      className="group relative flex flex-col border-r border-b bg-card p-6 transition-colors hover:bg-muted/30"
     >
-      <div className="flex items-start justify-between gap-3">
-        <h3 className="text-[15px] font-semibold">{p.name}</h3>
+      <span className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-ember transition-transform duration-300 group-hover:scale-x-100" />
+      <div className="flex items-center justify-between gap-3">
+        <p className="eyebrow">{p.name}</p>
         <StatusBadge status={p.isActive ? "ACTIVE" : "INACTIVE"} />
       </div>
-      <p className="num mt-5 text-3xl font-semibold tracking-tight">
-        {formatMoney(p.price)}
-        <span className="ml-1 text-sm font-normal text-muted-foreground">/ {PER[p.billingPeriod] ?? "period"}</span>
+      <p className="font-display mt-6 text-5xl leading-none tracking-tight">
+        <ScrambleNumber value={p.price} format="money" />
       </p>
-      <p className="mt-1 text-xs text-muted-foreground">Minimum quantity {p.minQuantity}</p>
-      <div className="mt-4 flex min-h-12 flex-wrap content-start gap-1.5">
-        {chips.length ? chips.map((c) => <Chip key={c}>{c}</Chip>) : <Chip>No options</Chip>}
+      <p className="font-mono-num mt-2 text-xs text-muted-foreground">
+        per {PER[p.billingPeriod] ?? "period"} · min qty {p.minQuantity}
+      </p>
+      <div className="mt-5 flex min-h-12 flex-wrap content-start gap-1.5">
+        {chips.length ? (
+          chips.map((c) => <Chip key={c}>{c}</Chip>)
+        ) : (
+          <Chip>No options</Chip>
+        )}
       </div>
-      <div className="mt-5 flex items-center justify-between border-t pt-4 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1.5">
-          <CalendarRange className="size-3.5" />
-          {availability(p)}
-        </span>
-        <span className="num flex items-center gap-1.5">
-          <Users className="size-3.5" />
-          {p.activeSubs} active
-        </span>
-      </div>
+      <dl className="font-mono-num mt-5 grid gap-1.5 border-t pt-4 text-xs text-muted-foreground">
+        <div className="flex justify-between gap-3">
+          <dt>Window</dt>
+          <dd className="text-right text-foreground">{availability(p)}</dd>
+        </div>
+        <div className="flex justify-between gap-3">
+          <dt>Active subs</dt>
+          <dd className="text-foreground">
+            {p.activeSubs.toLocaleString("en-IN")}
+          </dd>
+        </div>
+      </dl>
     </Link>
   );
 }

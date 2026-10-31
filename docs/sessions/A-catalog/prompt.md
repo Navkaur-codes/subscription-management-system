@@ -24,3 +24,6 @@ When the whole acceptance checklist is done: npm run typecheck && npm run lint, 
 (appended by Main as they are sent)
 
 - **Redesign follow-up (premium UI):** plans grid/list toggle, product chips+margin, discount rule text + usage bar, template quote preview. Browser-tested admin/staff, 1440 + 375. Fixed templates/[id] delete button (inline server fn passed to client).
+
+- **v3 Ember Loop:** editorial plan columns (ruled grid, ember hover rule, ScrambleNumber serif price, mono chips), discount rule sentence in font-display with ember em + ember usage bar, ruled quotation document for templates, mono numbers, v2 purged.
+- **v3 motion:** ViewToggle uses FlipIndicator, New plan wrapped in Magnetic, plan price ScrambleNumber.

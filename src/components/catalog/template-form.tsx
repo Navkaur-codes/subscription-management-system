@@ -284,38 +284,48 @@ export function TemplateForm({
             </div>
           </Section>
         </fieldset>
-        <aside className="rounded-2xl border bg-card p-5 shadow-card ring-1 ring-black/5 lg:sticky lg:top-20 dark:ring-white/10">
-          <p className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
-            Quote preview
-          </p>
-          <p className="mt-1 text-lg font-semibold tracking-tight">
+        <aside className="card-surface p-6 lg:sticky lg:top-20">
+          <p className="eyebrow">Quotation</p>
+          <h3 className="font-display mt-1 text-3xl leading-tight">
             {v.name || "Untitled template"}
-          </p>
-          <p className="text-xs text-muted-foreground">
+          </h3>
+          <p className="font-mono-num mt-1 text-xs text-muted-foreground">
             {plan ? plan.name : "No plan selected"} · valid{" "}
             {v.validityDays || 0} days · net {v.paymentTerms || 0}
           </p>
-          <ul className="mt-4 divide-y border-y text-sm">
+          <ul className="mt-5 border-t-2 border-foreground text-sm">
             {priced.lines.length === 0 && (
-              <li className="py-3 text-muted-foreground">No lines yet</li>
+              <li className="border-b py-3 text-muted-foreground">
+                No lines yet
+              </li>
             )}
             {priced.lines.map((l, i) => (
-              <li key={i} className="flex justify-between gap-3 py-2.5">
+              <li
+                key={i}
+                className="flex justify-between gap-3 border-b py-2.5"
+              >
                 <span className="min-w-0 truncate">
                   {byId.get(l.productId)?.name}
-                  <span className="text-muted-foreground"> × {l.quantity}</span>
+                  <span className="font-mono-num text-muted-foreground">
+                    {" "}
+                    × {l.quantity}
+                  </span>
                 </span>
-                <span className="num shrink-0">{formatMoney(l.base)}</span>
+                <span className="font-mono-num shrink-0">
+                  {formatMoney(l.base)}
+                </span>
               </li>
             ))}
           </ul>
-          <dl className="num mt-3 grid grid-cols-2 gap-y-1 text-sm">
+          <dl className="font-mono-num mt-3 grid grid-cols-2 gap-y-1 text-sm">
             <dt className="text-muted-foreground">Subtotal</dt>
             <dd className="text-right">{formatMoney(priced.subtotal)}</dd>
             <dt className="text-muted-foreground">Tax</dt>
             <dd className="text-right">{formatMoney(priced.taxTotal)}</dd>
-            <dt className="pt-2 font-medium">Total per period</dt>
-            <dd className="pt-2 text-right text-lg font-semibold">
+            <dt className="border-t pt-3 font-sans font-medium">
+              Total per period
+            </dt>
+            <dd className="font-display border-t pt-3 text-right text-2xl leading-none">
               {formatMoney(priced.total)}
             </dd>
           </dl>

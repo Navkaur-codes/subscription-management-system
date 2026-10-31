@@ -138,7 +138,7 @@ export function ProductForm({
                     <Input type="number" step="0.01" value={row.extraPrice} onChange={(e) => setVariant(i, { extraPrice: e.target.value })} />
                   </FormField>
                   <FormField label="Final price">
-                    <div className="num flex h-9 items-center text-sm font-medium">{formatMoney(unitPrice(base, Number(row.extraPrice) || 0))}</div>
+                    <div className="font-mono-num flex h-9 items-center text-sm font-medium">{formatMoney(unitPrice(base, Number(row.extraPrice) || 0))}</div>
                   </FormField>
                   {!readOnly && (
                     <Button

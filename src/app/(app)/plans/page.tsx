@@ -8,28 +8,50 @@ import { formatMoney, humanize, toNum } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/page-header";
 import { MetricStrip } from "@/components/shared/metric-strip";
-import { DataTable, EmptyState, type Column } from "@/components/shared/data-table";
-import { Pagination, SearchInput, Toolbar } from "@/components/shared/list-controls";
+import {
+  DataTable,
+  EmptyState,
+  type Column,
+} from "@/components/shared/data-table";
+import {
+  Pagination,
+  SearchInput,
+  Toolbar,
+} from "@/components/shared/list-controls";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { Stagger } from "@/components/motion";
-import { Chip, PlanCard, availability, planChips, type PlanCardData } from "@/components/catalog/plan-card";
+import { Magnetic, Stagger } from "@/components/motion";
+import {
+  Chip,
+  PlanCard,
+  availability,
+  planChips,
+  type PlanCardData,
+} from "@/components/catalog/plan-card";
 import { ViewToggle } from "@/components/catalog/view-toggle";
 
 export const metadata = { title: "Plans" };
 
-export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   const user = await requireRole("ADMIN", "STAFF");
   const sp = await searchParams;
   const view = sp.view === "list" ? "list" : "grid";
   const { page, skip, take } = pageParams(sp);
-  const where: Prisma.PlanWhereInput = sp.q ? { name: { contains: sp.q, mode: "insensitive" } } : {};
+  const where: Prisma.PlanWhereInput = sp.q
+    ? { name: { contains: sp.q, mode: "insensitive" } }
+    : {};
   const [plans, total, activeCount, liveSubs] = await Promise.all([
     db.plan.findMany({
       where,
       skip,
       take,
       orderBy: { name: "asc" },
-      include: { _count: { select: { subscriptions: { where: { status: "ACTIVE" } } } } },
+      include: {
+        _count: { select: { subscriptions: { where: { status: "ACTIVE" } } } },
+      },
     }),
     db.plan.count({ where }),
     db.plan.count({ where: { ...where, isActive: true } }),
@@ -52,11 +74,31 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
   }));
 
   const columns: Column<PlanCardData>[] = [
-    { key: "name", header: "Plan", cell: (r) => <span className="font-medium">{r.name}</span> },
-    { key: "price", header: "Price", align: "right", cell: (r) => formatMoney(r.price) },
+    {
+      key: "name",
+      header: "Plan",
+      cell: (r) => <span className="font-medium">{r.name}</span>,
+    },
+    {
+      key: "price",
+      header: "Price",
+      align: "right",
+      cell: (r) => formatMoney(r.price),
+    },
     { key: "period", header: "Period", cell: (r) => humanize(r.billingPeriod) },
-    { key: "qty", header: "Min qty", align: "right", cell: (r) => r.minQuantity },
-    { key: "window", header: "Available", cell: (r) => <span className="text-muted-foreground">{availability(r)}</span> },
+    {
+      key: "qty",
+      header: "Min qty",
+      align: "right",
+      cell: (r) => r.minQuantity,
+    },
+    {
+      key: "window",
+      header: "Available",
+      cell: (r) => (
+        <span className="text-muted-foreground">{availability(r)}</span>
+      ),
+    },
     {
       key: "flags",
       header: "Rules",
@@ -68,8 +110,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
         </div>
       ),
     },
-    { key: "subs", header: "Active subs", align: "right", cell: (r) => r.activeSubs },
-    { key: "status", header: "Status", cell: (r) => <StatusBadge status={r.isActive ? "ACTIVE" : "INACTIVE"} /> },
+    {
+      key: "subs",
+      header: "Active subs",
+      align: "right",
+      cell: (r) => r.activeSubs,
+    },
+    {
+      key: "status",
+      header: "Status",
+      cell: (r) => <StatusBadge status={r.isActive ? "ACTIVE" : "INACTIVE"} />,
+    },
   ];
 
   return (
@@ -81,32 +132,52 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
         description={`${total} plans · ${activeCount} active`}
         actions={
           user.role === "ADMIN" && (
-            <Button asChild>
-              <Link href="/plans/new">
-                <Plus className="size-4" />
-                New plan
-              </Link>
-            </Button>
+            <Magnetic>
+              <Button asChild>
+                <Link href="/plans/new">
+                  <Plus className="size-4" />
+                  New plan
+                </Link>
+              </Button>
+            </Magnetic>
           )
         }
       />
-      <MetricStrip items={[{ label: "Plans", value: total }, { label: "Active plans", value: activeCount }, { label: "Live subscriptions", value: liveSubs.toLocaleString("en-IN") }]} />
+      <MetricStrip
+        items={[
+          { label: "Plans", value: total },
+          { label: "Active plans", value: activeCount },
+          {
+            label: "Live subscriptions",
+            value: liveSubs.toLocaleString("en-IN"),
+          },
+        ]}
+      />
       <Toolbar>
         <SearchInput placeholder="Search plans…" />
         <ViewToggle current={view} />
       </Toolbar>
       <Stagger>
         {view === "list" ? (
-          <DataTable columns={columns} rows={rows} rowHref={(r) => `/plans/${r.id}`} />
+          <DataTable
+            columns={columns}
+            rows={rows}
+            rowHref={(r) => `/plans/${r.id}`}
+          />
         ) : rows.length === 0 ? (
           <div className="rounded-2xl border bg-card">
-            <EmptyState title="No plans found" description="Try a different search." />
+            <EmptyState
+              title="No plans found"
+              description="Try a different search."
+            />
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {rows.map((p) => (
-              <PlanCard key={p.id} plan={p} />
-            ))}
+          <div className="card-surface overflow-hidden">
+            <div className="-mr-px -mb-px grid sm:grid-cols-2 xl:grid-cols-3">
+              {rows.map((p) => (
+                <PlanCard key={p.id} plan={p} />
+              ))}
+            </div>
           </div>
         )}
       </Stagger>

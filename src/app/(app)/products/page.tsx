@@ -64,7 +64,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
       header: "Product",
       cell: (r) => (
         <div className="flex items-center gap-3">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-brand-soft text-brand">
+          <span className="flex size-8 items-center justify-center rounded-lg bg-ember-soft text-ember">
             {r.type === "GOODS" ? <Box className="size-4" /> : <Wrench className="size-4" />}
           </span>
           <div className="leading-tight">
@@ -82,8 +82,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
         const margin = r.salesPrice > 0 ? Math.round(((r.salesPrice - r.costPrice) / r.salesPrice) * 100) : 0;
         return (
           <div className="leading-tight">
-            <p className="font-medium">{formatMoney(r.salesPrice)}</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="font-mono-num font-medium">{formatMoney(r.salesPrice)}</p>
+            <p className="font-mono-num text-xs text-muted-foreground">
               cost {formatMoney(r.costPrice)} · {margin}% margin
             </p>
           </div>

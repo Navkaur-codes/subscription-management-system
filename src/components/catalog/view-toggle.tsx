@@ -1,5 +1,6 @@
 "use client";
 import { LayoutGrid, List } from "lucide-react";
+import { FlipIndicator } from "@/components/motion";
 import { useQueryParams } from "@/components/shared/list-controls";
 import { cn } from "@/lib/utils";
 
@@ -20,11 +21,17 @@ export function ViewToggle({ current }: { current: "grid" | "list" }) {
           aria-pressed={current === value}
           onClick={() => set({ view: value === "grid" ? null : value })}
           className={cn(
-            "rounded-md p-1.5 text-muted-foreground transition-colors hover:text-foreground",
-            current === value && "bg-muted text-foreground"
+            "relative rounded-md p-1.5 text-muted-foreground transition-colors hover:text-foreground",
+            current === value && "text-foreground",
           )}
         >
-          <Icon className="size-4" />
+          {current === value && (
+            <FlipIndicator
+              layoutId="catalog-view"
+              className="absolute inset-0 rounded-md bg-muted"
+            />
+          )}
+          <Icon className="relative size-4" />
         </button>
       ))}
     </div>
