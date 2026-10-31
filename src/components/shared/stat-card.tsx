@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Sparkline } from "@/components/shared/charts";
+import { Sparkline } from "@/components/shared/sparkline";
 import { ScrambleNumber, type NumberFormat } from "@/components/motion";
 
 type KpiTone = "brand" | "success" | "warning" | "danger" | "info";

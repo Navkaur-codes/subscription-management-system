@@ -94,3 +94,12 @@ Phase 2 = integration in place (no merges): run full typecheck/build, fix seams,
 - Verified in browser (prod build): login light + dark (orbit, stations ping, MRR scramble, serif headline reveal, ticker, demo row); one-click Admin login → v3 dashboard.
 
 - Email: Gmail SMTP configured in local .env (user-confirmed real delivery). Root cause of earlier non-delivery: servers started before .env edit kept the cached Ethereal transport — restart after any SMTP change.
+
+## Phase 6 — live site speed + full PS test (user: "live site is slow; test everything; don't push")
+- Root cause: Vercel functions ran in **iad1 (Washington)**, DB on Neon **Singapore**, user in India (edge bom1) → ~230 ms per DB round trip × 5–15 queries/page. Fix: `vercel.json` `"regions": ["sin1"]`.
+- Instant navigation: `src/app/(app)/loading.tsx`, `src/app/portal/loading.tsx` → `components/shared/page-skeleton.tsx`.
+- Bundles: KPI sparkline was Recharts → replaced by server-rendered SVG + CSS draw-in (`components/shared/sparkline.tsx`); payments 302→175 kB, portal 298→171 kB first-load JS.
+- Billing on Vercel: `maxDuration = 60` on /invoices and /invoices/new (server actions inherit).
+- Tried Prisma `relationJoins` (1 query per include) — reverted: client couldn't be regenerated locally (engine DLL locked by session dev servers on 3001/3003/3004/3006), so it was untested. Worth re-trying once those servers are stopped.
+- Tests: `npm run verify` (scripts/verify-ps.ts) — 35/35 PS business rules pass against real code + DB, self-cleaning. Browser: all 34 admin routes 200, no error text; wrong password rejected; staff blocked from /users + /discounts (now hard-redirected in middleware, nav hidden), catalog read-only, every catalog action adminGuard'ed; customer redirected away from staff routes + export, own invoice visible, other customers' invoice/subscription → 404 with no data.
+- Note: with loading.tsx, page-level redirect()/notFound() happen in-stream (HTTP 200 first) — secure (no data rendered), but admin-only areas should also be listed in middleware for a hard redirect.

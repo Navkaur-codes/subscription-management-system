@@ -7,6 +7,9 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/data-table";
 import { Button } from "@/components/ui/button";
 
+// Billing runs can take a while; Vercel stops functions at their duration limit.
+export const maxDuration = 60;
+
 export const metadata = { title: "Create invoice" };
 export const dynamic = "force-dynamic";
 

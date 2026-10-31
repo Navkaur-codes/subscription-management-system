@@ -16,6 +16,9 @@ import { DateRange } from "@/components/billing/date-range";
 import { BillingRunDialog } from "@/components/billing/billing-run-dialog";
 import { generateDueAction, previewBillingAction } from "./actions";
 
+// Billing runs can take a while; Vercel stops functions at their duration limit.
+export const maxDuration = 60;
+
 export const metadata = { title: "Invoices" };
 
 const TABS = [

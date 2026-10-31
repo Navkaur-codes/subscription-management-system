@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Sparkline } from "@/components/shared/charts";
+import { Sparkline } from "@/components/shared/sparkline";
 
 const COLS: Record<number, string> = { 3: "lg:grid-cols-3", 4: "lg:grid-cols-4", 5: "lg:grid-cols-5" };
 

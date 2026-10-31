@@ -2,7 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, homeFor, verifySession } from "@/lib/session";
 
 const PUBLIC = ["/login", "/signup", "/forgot-password", "/reset-password"];
-const ADMIN_ONLY = ["/users"];
+// Hard redirect before any streaming starts (pages also check, and every action guards).
+const ADMIN_ONLY = ["/users", "/discounts"];
 
 /** Coarse route guard. Server actions/pages must still call requireRole(). */
 export async function middleware(req: NextRequest) {

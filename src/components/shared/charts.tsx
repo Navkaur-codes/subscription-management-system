@@ -2,6 +2,7 @@
 /**
  * Shared Recharts wrappers — the ONLY way pages draw charts.
  * Colours come from --chart-1..6; tooltips follow the theme; animation ≤ 600ms.
+ * The KPI Sparkline lives in ./sparkline (plain SVG) so KPI-only pages don't ship Recharts.
  */
 import { useId } from "react";
 import {
@@ -22,6 +23,8 @@ import {
   type TooltipValueType,
 } from "recharts";
 import { DrawIn } from "@/components/motion";
+
+export { Sparkline } from "./sparkline";
 
 export const CHART_COLORS = [1, 2, 3, 4, 5, 6].map((i) => `var(--chart-${i})`);
 
@@ -215,34 +218,4 @@ export function Donut({
       </ul>
     </div>
   );
-}
-
-/** Tiny trend line for KPI cards. Accepts plain numbers. */
-export function Sparkline({
-  data,
-  color = CHART_COLORS[0],
-  height = 36,
-  animate = true,
-}: {
-  data: number[];
-  color?: string;
-  height?: number;
-  animate?: boolean;
-}) {
-  const id = useId().replace(/:/g, "");
-  const rows = data.map((v, i) => ({ i, v }));
-  const chart = (
-    <ResponsiveContainer width="100%" height={height}>
-      <AreaChart data={rows} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
-        <defs>
-          <linearGradient id={`s${id}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity={0.18} />
-            <stop offset="100%" stopColor={color} stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <Area type="monotone" dataKey="v" stroke={color} strokeWidth={1.5} fill={`url(#s${id})`} isAnimationActive={false} dot={false} />
-      </AreaChart>
-    </ResponsiveContainer>
-  );
-  return animate ? <DrawIn>{chart}</DrawIn> : chart;
 }

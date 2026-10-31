@@ -50,7 +50,7 @@ export const NAV: NavGroup[] = [
       { href: "/products", label: "Products", icon: Boxes, roles: TEAM },
       { href: "/plans", label: "Plans", icon: FileText, roles: TEAM },
       { href: "/taxes", label: "Taxes", icon: Tags, roles: TEAM },
-      { href: "/discounts", label: "Discounts", icon: Percent, roles: TEAM },
+      { href: "/discounts", label: "Discounts", icon: Percent, roles: ["ADMIN"] },
     ],
   },
   {
